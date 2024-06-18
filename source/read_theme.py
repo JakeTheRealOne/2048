@@ -136,7 +136,6 @@ class Theme:
         for i in range(1, 18):
             current = 2 ** i
             spacing = " " * (7 - len(str(current)))
-            print(current, spacing, "#", *[t.colored(f" s") for t in self.__data[current]])
-        raise Exception
+            print(current, spacing, "#", *[t.colored("  ") for t in self.__data[current]])
 
     # getters:
