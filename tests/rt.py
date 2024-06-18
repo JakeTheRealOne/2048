@@ -66,6 +66,13 @@ class TestColorClass:
         assert int(c2) == 16776702
         assert int(c3) == (rand[0] << 16) + (rand[1] << 8) + (rand[2])
 
+    def test5(self):
+        """
+        check that the colored method works as expected
+        """
+        c1 = Color(255, 0, 0)
+        c1.colored("Hello") == "\x1b[48;2;255;0;0mHello\033[0m"
+
 class TestThemeClass():
     
     def test1(self):

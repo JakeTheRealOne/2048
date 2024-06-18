@@ -4,6 +4,10 @@ Date: June 2024
 -> Convert a theme file into a python Theme instance
 """
 
+COLORED_PREFIX = "\033[48;2;"
+COLORED_MIDLIX = "m"
+COLORED_SUFFIX = "\033[0m"
+
 def hex_to_rgb(hex_str: str) -> tuple[int, int, int]:
     """
     convert a str "#rrggbb" in hexadecimal into
@@ -28,7 +32,14 @@ class Color:
         if (red < 0 or red > 255) or (green < 0 or green > 255) or (blue < 0 or blue > 255):
             raise ColorError(f"invalid rgb values: {(red, green, blue)}")
         self._rgb = (red, green, blue)
+        self._build_prefix()
 
+    def _build_prefix(self) -> None:
+        """
+        build the prefix that indiquates that a text must have
+        a bg of the current color
+        """
+        self._prefix = COLORED_PREFIX + ";".join([str(c) for c in self._rgb]) + COLORED_MIDLIX
 
     def __str__(self) -> str:
         """
@@ -56,7 +67,7 @@ class Color:
         ARG:
             - text: text to color
         """
-        pass # TODO
+        return self._prefix + text + COLORED_SUFFIX
 
     # getters:
     @property
@@ -125,6 +136,7 @@ class Theme:
         for i in range(1, 18):
             current = 2 ** i
             spacing = " " * (7 - len(str(current)))
-            print(current, spacing, "#", *[str(t) for t in self.__data[current]])
+            print(current, spacing, "#", *[t.colored(f" s") for t in self.__data[current]])
+        raise Exception
 
     # getters:
