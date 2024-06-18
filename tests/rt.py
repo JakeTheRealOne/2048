@@ -66,5 +66,15 @@ class TestColorClass:
         assert int(c2) == 16776702
         assert int(c3) == (rand[0] << 16) + (rand[1] << 8) + (rand[2])
 
+class TestThemeClass():
+    
+    def test1(self):
+        """
+        check that the init works as expected
+        """
+        t1 = Theme("themes/base.dmqu")
+        t1.display()
+
 if __name__ == "__main__":
     TestColorClass()
+    TestThemeClass()
