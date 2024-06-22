@@ -96,6 +96,7 @@ class ThemeError(Exception):
     """expected exception in the Theme class"""
 
 class Theme:
+    """represent a theme for a 2048 game"""
     # based color:
     BG_COLOR = Color(60, 58, 50) # Dark grey - #3c3a32
     LABEL_COLOR = Color(249, 246, 242) # White - #f9f6f2
@@ -112,8 +113,8 @@ class Theme:
             raise ThemeError("no theme file found")
         except AssertionError:
             raise ThemeError("corrupted theme file")
-        except Exception as e:
-            raise ThemeError(str(e))
+        except Exception:
+            raise ThemeError("corrupted theme file")
         
 
     def _build(self, content: list[str]) -> None:
@@ -137,5 +138,3 @@ class Theme:
             current = 2 ** i
             spacing = " " * (7 - len(str(current)))
             print(current, spacing, "#", *[t.colored("  ") for t in self.__data[current]])
-
-    # getters:
