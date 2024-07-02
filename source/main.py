@@ -9,6 +9,27 @@ import random
 # debug:
 random.seed(593438)
 
+INDEX_TO_POWER = [
+    "N",
+    2,
+    4,
+    8,
+    16,
+    32,
+    64,
+    128,
+    256,
+    512,
+    1024,
+    2048,
+    4096,
+    8192,
+    16384,
+    32768,
+    65536,
+    131072
+]
+
 class GameError(Exception):
     """represents a 2048 game intended exception"""
 
@@ -21,33 +42,22 @@ class Game:
     def __init__(self, width: int = 4, height: int = 4):
         self._width = width
         self._height = height
-        self._score = self._max_tile = self._tiles_number = 0
+        self._score = self._tiles_number = 0
         self._build_grid()
 
     def _build_grid(self) -> None:
         """
         build the grid of the game
-        GRID:
-        list [dict() for _ in range(self.height)] (list of lines)
-        each dict keep pairs column:power (where column is the column index
-        and power is the power of the tuile (from 2 to 131072))
         """
-        self._grid = [dict() for _ in range(self.height)]
-        self._available_lines = list(range(self.height))
-        self._available_cases = [set(range(self.width)) for _ in range(self.height)]
+        self._grid = [[0 for _ in range(self._width)] for _ in range(self._height)]
+        self._free_spots = set(range(self._width * self._height))
 
     def display(self) -> None:
         """
         show in the terminal the grid of the game
         """
-        full_len = len(str(self._max_tile))
-        for line in range(self.height):
-            for case in range(self.width):
-                to_print = str(self._grid[line].get(case, " " * full_len))
-                spacing = full_len - len(to_print)
-                print((" " * ((spacing + 1) // 2)) + to_print + (" " * round(spacing / 2)), end="|")
-            print("\n", end="")
-        print()
+        for line in self._grid:
+            print([INDEX_TO_POWER[e] for e in line])
 
 
     def is_losing(self) -> bool:
@@ -56,14 +66,7 @@ class Game:
         """
         pass
 
-    def is_full(self) -> bool:
-        """
-        return if the game grid is complete
-
-        """
-        return self._tiles_number == self._width * self._height
-
-    def random_pow(self, mode: str = "start") -> int:
+    def random_pow(self, mode: str = "normal") -> int:
         """
         return a random power (2, 4, etc.) using the random table of 
         a mode
@@ -73,19 +76,19 @@ class Game:
         rand_val = random.random()
         match mode:
             case "start":
-                return 2
+                return 1
             case "normal":
                 if rand_val <= 0.1:
-                    return 4
-                else:
                     return 2
+                else:
+                    return 1
             case "hell":
                 if rand_val <= 0.05:
-                    return 64
+                    return 6
                 elif rand_val <= 0.2:
-                    return 4
-                else:
                     return 2
+                else:
+                    return 1
             case _:
                 raise GameError(f"unkown game mode: {mode[:32]}{"..." if len(mode) > 32 else ""}")
 
@@ -108,24 +111,14 @@ class Game:
         if self._tiles_number + number > self._width * self._height:
             raise GameError("not enough space to spawn new tiles")
         for tile in range(number):
-            # 1. find a line
-            # 2. find a column if line is free
-            # 3. choose a value for the tile
-            # 4. update the grid, tiles number, free spots
-            rand_val = random.randint(0, len(self._available_lines) - 1)
-            line = self._available_lines[rand_val]
-            case = random.choice(list(self._available_cases[line]))
-            value = self.random_pow(mode)
-            self._max_tile = max(value, self._max_tile)
-            self._grid[line][case] = value
+            # 1. find a line + column
+            pos = random.choice(list(self._free_spots))
+            # 2. choose a value for the tile
+            val = self.random_pow(mode)
+            # 3. update the grid, tiles number, free spots
             self._tiles_number += 1
-            self._available_cases[line].remove(case)
-            if not self._available_cases[line]:
-                del self._available_lines[rand_val]
-            self.display()
-
-
-
+            self._free_spots.remove(pos)
+            self._grid[pos // self._width][pos % self._width] = val
 
     def change_gravity(orientation: str = "down") -> None:
         """
@@ -165,7 +158,7 @@ class Game:
         return self._score
 
     @property
-    def grid(self) -> list[dict]:
+    def grid(self) -> list[list]:
         """
         return the grid of the game
         """
@@ -178,21 +171,7 @@ class Game:
         """
         return self._tiles_number
 
-    @property
-    def available_lines(self) -> list[int]:
-        """
-        return the list of index of available lines
-        """
-        return self._available_lines
-
-    @property
-    def max_tile(self) -> list[int]:
-        """
-        return the max tile value of the grid
-        """
-        return self._max_tile
-
 
 if __name__ == "__main__":
     g1 = Game()
-    g1.spawn_random(10, 'hell')
+    g1.spawn_random(2, 'start')
