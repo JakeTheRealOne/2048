@@ -42,7 +42,8 @@ class Game:
     def __init__(self, width: int = 4, height: int = 4):
         self._width = width
         self._height = height
-        self._score = self._tiles_number = 0
+        self._size = width * height
+        self._score = 0
         self._build_grid()
 
     def _build_grid(self) -> None:
@@ -57,7 +58,7 @@ class Game:
         show in the terminal the grid of the game
         """
         for line in self._grid:
-            print([INDEX_TO_POWER[e] for e in line])
+            print(" ".join([str(INDEX_TO_POWER[e]) for e in line]))
 
 
     def is_losing(self) -> bool:
@@ -65,6 +66,12 @@ class Game:
         return if the game is in a dead end
         """
         pass
+
+    def is_full(self) -> bool:
+        """
+        return if the grid is full
+        """
+        return not bool(len(self._free_spots))
 
     def random_pow(self, mode: str = "normal") -> int:
         """
@@ -108,7 +115,7 @@ class Game:
             - number: the number of tiles to spawn
             - mode: the mode of the spawn (supported: normal and hell)
         """
-        if self._tiles_number + number > self._width * self._height:
+        if len(self._free_spots) < number:
             raise GameError("not enough space to spawn new tiles")
         for tile in range(number):
             # 1. find a line + column
@@ -116,11 +123,10 @@ class Game:
             # 2. choose a value for the tile
             val = self.random_pow(mode)
             # 3. update the grid, tiles number, free spots
-            self._tiles_number += 1
             self._free_spots.remove(pos)
             self._grid[pos // self._width][pos % self._width] = val
 
-    def change_gravity(orientation: str = "down") -> None:
+    def change_gravity(self, orientation: str = "down") -> None:
         """
         update the grid with a new gravity (down, up, left, right)
         STRUCTURE: (example with down 4x4)
@@ -134,6 +140,35 @@ class Game:
                         stop
         """
         pass
+
+    def tmp_down(self) -> None:
+        """ TEMPORARY
+        change the gravity to the down gravity
+        """
+        if self.is_full():
+            return
+        for column in range(self._width):
+            for case in range(self._height - 2, -1, -1):
+                current_pos = origin_pos = case * self._width + column
+                if current_pos in self._free_spots:
+                    continue
+                current_pos += self._width
+                while current_pos in self._free_spots:
+                    current_pos += self._width
+                current_pos -= self._width
+                new_line = current_pos // self._width
+                if origin_pos != current_pos:
+                    self._grid[case][column], self._grid[new_line][column] = self._grid[new_line][column], self._grid[case][column]
+                    # update free_spots
+                    self._free_spots.remove(current_pos)
+                    self._free_spots.add(origin_pos)
+                # merge with the bottom tile if the values are identical
+                if new_line < self._height - 1 and self._grid[new_line][column] == self._grid[new_line+1][column]:
+                    # WHILE INSTEAD OF IF ?
+                    self._grid[new_line][column] = 0
+                    self._grid[new_line+1][column] += 1
+                    self._free_spots.add(current_pos)
+                
 
     # getters:
     @property
@@ -164,14 +199,11 @@ class Game:
         """
         return self._grid
 
-    @property
-    def tiles_number(self) -> int:
-        """
-        return the total number of tiles in the grid
-        """
-        return self._tiles_number
-
 
 if __name__ == "__main__":
     g1 = Game()
-    g1.spawn_random(2, 'start')
+    g1.spawn_random(15, 'start')
+    g1.display()
+    g1.tmp_down()
+    print()
+    g1.display()
