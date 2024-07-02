@@ -5,6 +5,7 @@ Date: June 2024
 """
 
 import random
+import sys
 
 # debug:
 random.seed(593438)
@@ -30,8 +31,15 @@ INDEX_TO_POWER = [
     131072
 ]
 
+help_msg = ("Help page:\n  Welcome to 2048! Programmed by JakeTheRealOne"
++ "\n  Goal: get the highest score possible by adjusting the grid gravity\n"
++ "        two tiles with the same value can merge after changing the gravity\n"
++ "        you loose if you reach a dead end\n  Arguments:\n    --azerty : Start"
++ " a game in Azerty mode\n    --qwerty : Start a game in Qwerty mode"
++ "\n    --vim : Start a game as a GigaChad\n  Credit: the author of the game is Gabriele Cirulli")
+
 class GameError(Exception):
-    """represents a 2048 game intended exception"""
+    """represent a 2048 game intended exception"""
 
 class Game:
     """represent a game of 2048"""
@@ -126,20 +134,18 @@ class Game:
             self._free_spots.remove(pos)
             self._grid[pos // self._width][pos % self._width] = val
 
-    def change_gravity(self, orientation: str = "down") -> None:
+    def change_gravity(self, orientation: int = 0) -> None:
         """
         update the grid with a new gravity (down, up, left, right)
-        STRUCTURE: (example with down 4x4)
-            for each column:
-                from bottom to top for each tile:
-                    while there is nothing underneath:
-                        move bottom
-                    if there is a tile and the value are the same:
-                        merge and delete
-                    if there is the end or another diff. tile:
-                        stop
+        ARG:
+            - orientation: the index of the new orientation in the AVAILABLE_DIRECTION:
+                0 -> up
+                1 -> down
+                2 -> left
+                3 -> right
         """
-        pass
+        assert isinstance(orientation, int) and 0 <= orientation < 4
+        (self.tmp_up, self.tmp_down, self.tmp_left, self.tmp_right)[orientation]()
 
 
     # ONE DAY, I WILL MERGE tmp_down, tmp_up, tmp_left and tmp_right together but now, i keep them ugly like that
@@ -148,8 +154,6 @@ class Game:
         """ TEMPORARY
         change the gravity to the down gravity
         """
-        if self.is_full():
-            return
         for column in range(self._width):
             for case in range(self._height - 2, -1, -1):
                 current_pos = origin_pos = case * self._width + column
@@ -176,8 +180,6 @@ class Game:
         """ TEMPORARY
         change the gravity to the up gravity
         """
-        if self.is_full():
-            return
         for column in range(self._width):
             for case in range(1, self._height):
                 current_pos = origin_pos = case * self._width + column
@@ -199,7 +201,62 @@ class Game:
                     self._grid[new_case][column] = 0
                     self._grid[new_case - 1][column] += 1
                     self._free_spots.add(current_pos)
-                
+
+    def tmp_left(self) -> None:
+        """ TEMPORARY
+        change the gravity to the left gravity
+        """
+        for line in range(self._height):
+            y_pos = line * self._width
+            for case in range(1, self._width):
+                x_pos = case
+                # stop if case is empty
+                pos = y_pos + x_pos
+                if pos in self._free_spots:
+                    continue
+                # the tile falls
+                while x_pos > 0 and pos - 1 in self._free_spots:
+                    x_pos -= 1
+                    pos -= 1
+                if case != x_pos:
+                    # update position in the grid
+                    self._grid[line][case], self._grid[line][x_pos] = self._grid[line][x_pos], self._grid[line][case]
+                    # update free_spots
+                    self._free_spots.remove(y_pos + x_pos)
+                    self._free_spots.add(y_pos + case)
+                # merge with the bottom tile if the values are identical
+                if x_pos > 0 and self._grid[line][x_pos] == self._grid[line][x_pos - 1]:
+                    self._grid[line][x_pos] = 0
+                    self._grid[line][x_pos - 1] += 1
+                    self._free_spots.add(y_pos + x_pos)
+
+    def tmp_right(self) -> None:
+        """ TEMPORARY
+        change the gravity to the right gravity
+        """
+        for line in range(self._height):
+            y_pos = line * self._width
+            for case in range(self._width - 2, -1, -1):
+                x_pos = case
+                # stop if case is empty
+                pos = y_pos + x_pos
+                if pos in self._free_spots:
+                    continue
+                # the tile falls
+                while x_pos < self._width - 1 and pos + 1 in self._free_spots:
+                    x_pos += 1
+                    pos += 1
+                if case != x_pos:
+                    # update position in the grid
+                    self._grid[line][case], self._grid[line][x_pos] = self._grid[line][x_pos], self._grid[line][case]
+                    # update free_spots
+                    self._free_spots.remove(y_pos + x_pos)
+                    self._free_spots.add(y_pos + case)
+                # merge with the bottom tile if the values are identical
+                if x_pos < self._width - 1 and self._grid[line][x_pos] == self._grid[line][x_pos + 1]:
+                    self._grid[line][x_pos] = 0
+                    self._grid[line][x_pos + 1] += 1
+                    self._free_spots.add(y_pos + x_pos)
 
     # getters:
     @property
@@ -230,11 +287,115 @@ class Game:
         """
         return self._grid
 
+class GameSettings:
+    """represent settings of a game of 2048"""
+
+    def __init__(self, up_key: str, down_key: str,
+    left_key: str, right_key: str):
+        self._build_keys(up_key, down_key, left_key, right_key)
+
+    def _build_keys(self, up_key: str, down_key: str,
+    left_key: str, right_key: str) -> None:
+        """
+        build the directional keys of the settings
+        """
+        assert (isinstance(up_key, str) and len(up_key) == 1 
+        and isinstance(down_key, str) and len(down_key) == 1
+        and isinstance(left_key, str) and len(left_key) == 1
+        and isinstance(right_key, str) and len(right_key) == 1)
+        self._keys = [up_key, down_key, left_key, right_key]
+
+def azerty():
+    g = Game()
+    g.spawn_random(2, "start")
+    while True:
+        print("\n")
+        g.display()
+        print("use the Z Q S D keys\n   [Z]   \n[Q][S][D]")
+        direction = input("choose a direction: ")
+        match direction.lower():
+            case "z":
+                g.change_gravity(0)
+            case "s":
+                g.change_gravity(1)
+            case "d":
+                g.change_gravity(3)
+            case "q":
+                g.change_gravity(2)
+            case _:
+                print(f"unkown direction: [{direction.upper()[0]}{"..." if len(direction) > 1 else ""}]")
+        if g.is_full():
+            break
+        g.spawn_random(2)
+
+    print("\nyou loose")
+
+def qwerty():
+    g = Game()
+    g.spawn_random(2, "start")
+    while True:
+        g.display()
+        print("use the WASD keys\n   [W]   \n[A][S][D]")
+        direction = input("choose a direction: ")
+        match direction.lower():
+            case "w":
+                g.change_gravity(0)
+            case "s":
+                g.change_gravity(1)
+            case "d":
+                g.change_gravity(3)
+            case "a":
+                g.change_gravity(2)
+            case _:
+                print(f"unkown direction: [{direction.upper()[0]}{"..." if len(direction) > 1 else ""}]")
+        if g.is_full():
+            break
+        g.spawn_random(2)
+        print("\n")
+
+    print("\nyou loose")
+
+def vim():
+    g = Game()
+    g.spawn_random(2, "start")
+    while True:
+        print("\n")
+        g.display()
+        print("use the VIM keys\n[H][J][K][L]")
+        direction = input("choose a direction: ")
+        match direction.lower():
+            case "k":
+                g.change_gravity(0)
+            case "j":
+                g.change_gravity(1)
+            case "l":
+                g.change_gravity(3)
+            case "h":
+                g.change_gravity(2)
+            case _:
+                print(f"unkown direction: [{direction.upper()[0]}{"..." if len(direction) > 1 else ""}]")
+        if g.is_full():
+            break
+        g.spawn_random(2)
+
+    print("\nyou loose")
+
+def main():
+    """run the program"""
+    if len(sys.argv) == 1:
+        azerty() # I am belgian
+    else:
+        if "--help" in sys.argv[1:]:
+            print(help_msg)
+        elif "--azerty" in sys.argv[1:]:
+            azerty()
+        elif "--qwerty" in sys.argv[1:]:
+            qwerty()
+        elif "--vim" in sys.argv[1:]:
+            vim()
+        else:
+            azerty()
+
 
 if __name__ == "__main__":
-    g1 = Game()
-    g1.spawn_random(15, 'start')
-    g1.display()
-    g1.tmp_up()
-    print()
-    g1.display()
+    main()
