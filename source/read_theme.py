@@ -4,6 +4,27 @@ Date: June 2024
 -> Convert a theme file into a python Theme instance
 """
 
+INDEX_TO_POWER = [
+    ".",
+    2,
+    4,
+    8,
+    16,
+    32,
+    64,
+    128,
+    256,
+    512,
+    1024,
+    2048,
+    4096,
+    8192,
+    16384,
+    32768,
+    65536,
+    131072
+]
+
 COLORED_PREFIX = "\033[48;2;"
 COLORED_MIDLIX = "m"
 COLORED_SUFFIX = "\033[0m"
@@ -39,7 +60,7 @@ class Color:
         build the prefix that indiquates that a text must have
         a bg of the current color
         """
-        self._prefix = COLORED_PREFIX + ";".join([str(c) for c in self._rgb]) + COLORED_MIDLIX
+        self._bg_prefix = COLORED_PREFIX + ";".join([str(c) for c in self._rgb]) + COLORED_MIDLIX
 
     def __str__(self) -> str:
         """
@@ -61,13 +82,16 @@ class Color:
         """
         return (self.red << 16) + (self.green << 8) + self.blue
 
-    def colored(self, text: str) -> str:
+    def bg(self, text: str) -> str:
         """
         return the colored variant of the text
         ARG:
             - text: text to color
         """
-        return self._prefix + text + COLORED_SUFFIX
+        try:
+            return self._bg_prefix + text + COLORED_SUFFIX
+        except Exception:
+            return text
 
     # getters:
     @property
@@ -101,7 +125,6 @@ class Theme:
     BG_COLOR = Color(60, 58, 50) # Dark grey - #3c3a32
     LABEL_COLOR = Color(249, 246, 242) # White - #f9f6f2
 
-
     # methods:
     def __init__(self, path: str):
         try:
@@ -115,21 +138,24 @@ class Theme:
             raise ThemeError("corrupted theme file")
         except Exception:
             raise ThemeError("corrupted theme file")
-        
 
     def _build(self, content: list[str]) -> None:
         """
         build the attribute with the content of a theme file
         """
-        self.__data = dict()
-        current_tile = 2
+        self._data = [[Color(0, 0, 0), Color(255, 255, 255)]]
         for tile in content:
             bg_color, label_color = tile.split(", ")
             bg = Color(*hex_to_rgb(bg_color))
             label = Color(*hex_to_rgb(label_color))
-            self.__data[current_tile] = [bg, label]
-            current_tile *= 2
-        
+            self._data.append([bg, label])
+
+    def index(self, index: int) -> Color:
+        """
+        get the color at position
+        """
+        return None if index > 17 else self._data[index]
+
     def display(self) -> str:
         """
         display the colors of the theme
@@ -137,4 +163,4 @@ class Theme:
         for i in range(1, 18):
             current = 2 ** i
             spacing = " " * (7 - len(str(current)))
-            print(current, spacing, "#", *[t.colored("  ") for t in self.__data[current]])
+            print(current, spacing, "#", *[t.colored("  ") for t in self._data[i]])

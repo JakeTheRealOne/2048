@@ -6,12 +6,13 @@ Date: June 2024
 
 import random
 import sys
+from read_theme import Theme
 
 # debug:
 random.seed(593438)
 
 INDEX_TO_POWER = [
-    "N",
+    ".",
     2,
     4,
     8,
@@ -43,6 +44,7 @@ class GameError(Exception):
     """represent a 2048 game intended exception"""
     pass
 
+
 class Game:
     """represent a game of 2048"""
 
@@ -54,6 +56,7 @@ class Game:
         self._height = height
         self._size = width * height
         self._score = 0
+        self._max_tile = 2 # the value of the biggest tile on the grid
         self._build_grid()
 
     def _build_grid(self) -> None:
@@ -63,19 +66,29 @@ class Game:
         self._grid = [[0 for _ in range(self._width)] for _ in range(self._height)]
         self._free_spots = set(range(self._width * self._height))
 
-    def display(self) -> None:
+    def display(self, theme: Theme = None) -> None:
         """
         show in the terminal the grid of the game
         """
-        for line in self._grid:
-            print(" ".join([str(INDEX_TO_POWER[e]) for e in line]))
-
+        max_len = len(str(self._max_tile)) + 1
+        if theme is None:
+            for line in self._grid:
+                print(" ".join([str(INDEX_TO_POWER[e]) for e in line]))
+        else:
+            for line in self._grid:
+                for e in line:
+                    print(theme.index(e)[0].bg(str(INDEX_TO_POWER[e]).rjust(max_len)), end="")
+                print()
 
     def is_losing(self) -> bool:
         """
         return if the game is in a dead end
         """
-        pass
+        if self.is_full():
+            # TODO: find an easy way to say if its over
+            return True # temporary
+        else:
+            return False
 
     def is_full(self) -> bool:
         """
@@ -149,34 +162,12 @@ class Game:
         assert isinstance(orientation, int) and 0 <= orientation < 4
         (self.tmp_up, self.tmp_down, self.tmp_left, self.tmp_right)[orientation]()
 
-
     # ONE DAY, I WILL MERGE tmp_down, tmp_up, tmp_left and tmp_right together but now, i keep them ugly like that
 
     def tmp_down(self) -> None:
         """ TEMPORARY
         change the gravity to the down gravity
         """
-        # for column in range(self._width):
-        #     for case in range(self._height - 2, -1, -1):
-        #         current_pos = origin_pos = case * self._width + column
-        #         if current_pos in self._free_spots:
-        #             continue
-        #         current_pos += self._width
-        #         while current_pos in self._free_spots:
-        #             current_pos += self._width
-        #         current_pos -= self._width
-        #         new_case = current_pos // self._width
-        #         if origin_pos != current_pos:
-        #             self._grid[case][column], self._grid[new_case][column] = self._grid[new_case][column], self._grid[case][column]
-        #             # update free_spots
-        #             self._free_spots.remove(current_pos)
-        #             self._free_spots.add(origin_pos)
-        #         # merge with the bottom tile if the values are identical
-        #         if new_case < self._height - 1 and self._grid[new_case][column] == self._grid[new_case+1][column]:
-        #             # WHILE INSTEAD OF IF ? (in the real game its just an if but we can try our own rice here)
-        #             self._grid[new_case][column] = 0
-        #             self._grid[new_case + 1][column] += 1
-        #             self._free_spots.add(current_pos)
         for column in range(self._width):
             for case in range(self._height - 2, -1, -1):
                 y_pos = case
@@ -198,6 +189,7 @@ class Game:
                 if y_pos < self._height - 1 and self._grid[y_pos][column] == self._grid[y_pos + 1][column]:
                     self._grid[y_pos][column] = 0
                     self._grid[y_pos + 1][column] += 1
+                    self._max_tile = max(self._max_tile, INDEX_TO_POWER[self._grid[y_pos + 1][column]])
                     self._free_spots.add(pos)
 
     def tmp_up(self) -> None:
@@ -225,6 +217,7 @@ class Game:
                 if y_pos > 0 and self._grid[y_pos][column] == self._grid[y_pos - 1][column]:
                     self._grid[y_pos][column] = 0
                     self._grid[y_pos - 1][column] += 1
+                    self._max_tile = max(self._max_tile, INDEX_TO_POWER[self._grid[y_pos - 1][column] ])
                     self._free_spots.add(pos)
 
     def tmp_left(self) -> None:
@@ -253,6 +246,7 @@ class Game:
                 if x_pos > 0 and self._grid[line][x_pos] == self._grid[line][x_pos - 1]:
                     self._grid[line][x_pos] = 0
                     self._grid[line][x_pos - 1] += 1
+                    self._max_tile = max(self._max_tile, INDEX_TO_POWER[self._grid[line][x_pos - 1]])
                     self._free_spots.add(y_pos + x_pos)
 
     def tmp_right(self) -> None:
@@ -281,6 +275,7 @@ class Game:
                 if x_pos < self._width - 1 and self._grid[line][x_pos] == self._grid[line][x_pos + 1]:
                     self._grid[line][x_pos] = 0
                     self._grid[line][x_pos + 1] += 1
+                    self._max_tile = max(self._max_tile, INDEX_TO_POWER[self._grid[line][x_pos + 1]])
                     self._free_spots.add(y_pos + x_pos)
 
     # getters:
@@ -312,6 +307,13 @@ class Game:
         """
         return self._grid
 
+    @property
+    def free_spots(self) -> list[list]:
+        """
+        return the list of free spots (without a tile)
+        """
+        return self._free_spots
+
 
 class GameSettings:
     """represent settings of a game of 2048"""
@@ -319,12 +321,14 @@ class GameSettings:
     AVAILABLE_LANGUAGES = {"English"}
     AVAILABLE_LAYOUTS = {"cross", "square", "linear", "custom"}
 
+    # methods:
     def __init__(self, up_key: str, down_key: str,
-    left_key: str, right_key: str, language: str = "English",
+    left_key: str, right_key: str, theme: Theme, language: str = "English",
     keys_layout: str = "square", crosses: str = None):
         self._build_keys(up_key, down_key, left_key, right_key)
         self._build_layout(keys_layout, crosses)
         self._build_language(language)
+        self._build_theme(theme)
 
     def _build_keys(self, up_key: str, down_key: str,
     left_key: str, right_key: str) -> None:
@@ -394,6 +398,15 @@ class GameSettings:
         assert isinstance(language, str) and language in GameSettings.AVAILABLE_LANGUAGES
         self._language = language
 
+    def _build_theme(self, theme: Theme) -> None:
+        """
+        build the theme of the game
+        ARG:
+            - theme: the Theme instance
+        """
+        assert isinstance(theme, Theme)
+        self._theme = theme
+
     def __str__(self) -> str:
         """
         return str(self)
@@ -411,6 +424,7 @@ class GameSettings:
         """
         return self._keys == gs2._keys and self._language == gs2._language
 
+    # getters:
     @property
     def keys(self) -> list[str]:
         """
@@ -460,6 +474,13 @@ class GameSettings:
         """
         return self._language
 
+    @property
+    def theme(self) -> str:
+        """
+        return the language of the interface
+        """
+        return self._theme
+
 
 def run_game(settings: GameSettings):
     """
@@ -470,7 +491,7 @@ def run_game(settings: GameSettings):
     g = Game()
     g.spawn_random(2, "start")
     while True:
-        g.display()
+        g.display(settings.theme)
         print(f"use the Z Q S D keys\n{settings.layout}")
         direction = input("choose a direction: ")
         match direction.lower():
@@ -484,32 +505,29 @@ def run_game(settings: GameSettings):
                 g.change_gravity(3)
             case _:
                 print(f"unkown direction: [{(direction.upper()[0] + "..." if len(direction) > 1 else "") if len(direction) else ""}]")
-        if g.is_full():
-            break
         g.spawn_random(2)
+        if g.is_losing():
+            break
         print()
-
     print("\nyou loose")
+
 
 def main():
     """run the program"""
     if "--help" in sys.argv[1:]:
         print(help_msg)
     elif "--azerty" in sys.argv[1:]:
-        run_game(GameSettings("z", "s", "q", "d", keys_layout="cross"))
+        run_game(GameSettings("z", "s", "q", "d", keys_layout="cross", theme=Theme("themes/base.dmqu")))
     elif "--qwerty" in sys.argv[1:]:
-        run_game(GameSettings("w", "s", "a", "d", keys_layout="cross"))
+        run_game(GameSettings("w", "s", "a", "d", keys_layout="cross", theme=Theme("themes/base.dmqu")))
     elif "--vim" in sys.argv[1:]:
-        run_game(GameSettings("k", "j", "h", "l", keys_layout="linear"))
+        run_game(GameSettings("k", "j", "h", "l", keys_layout="linear", theme=Theme("themes/base.dmqu")))
     else:
-        run_game(GameSettings("z", "s", "q", "d", keys_layout="cross"))
+        run_game(GameSettings("z", "s", "q", "d", keys_layout="cross", theme=Theme("themes/base.dmqu")))
 
 
 if __name__ == "__main__":
-    #azerty_settings = GameSettings("z", "s", "q", "d")
-    #print(azerty_settings)
     main()
 
 #{TODO}
-# 1. fix up and down movements (the while loop use the pos and its just worng because it can jump columns)
 # 2. add settings management and remember preferences in a settings file
