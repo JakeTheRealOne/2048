@@ -399,3 +399,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+#{TODO}
+# 1. fix up and down movements (the while loop use the pos and its just worng because it can jump columns)
+# 2. add settings management and remember preferences in a settings file
