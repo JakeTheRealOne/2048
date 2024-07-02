@@ -44,7 +44,7 @@ class GameError(Exception):
 class Game:
     """represent a game of 2048"""
 
-    AVAILABLE_DIRECTION = ["up", "down", "left", "right"]
+    AVAILABLE_DIRECTIONS = ["up", "down", "left", "right"]
 
     # methods:
     def __init__(self, width: int = 4, height: int = 4):
@@ -138,7 +138,7 @@ class Game:
         """
         update the grid with a new gravity (down, up, left, right)
         ARG:
-            - orientation: the index of the new orientation in the AVAILABLE_DIRECTION:
+            - orientation: the index of the new orientation in the AVAILABLE_DIRECTIONS:
                 0 -> up
                 1 -> down
                 2 -> left
@@ -290,14 +290,24 @@ class Game:
 class GameSettings:
     """represent settings of a game of 2048"""
 
+    AVAILABLE_LANGUAGES = {"English"}
+
     def __init__(self, up_key: str, down_key: str,
-    left_key: str, right_key: str):
+    left_key: str, right_key: str, language: str = "English"):
         self._build_keys(up_key, down_key, left_key, right_key)
+        self._build_language(language)
 
     def _build_keys(self, up_key: str, down_key: str,
     left_key: str, right_key: str) -> None:
         """
         build the directional keys of the settings
+        RESTRICTION:
+            the lenght of a key must be 1
+        ARGS:
+            - up_key: the key assigned to moving upward the tiles
+            - down_key: the key assigned to moving downward the tiles
+            - left_key: the key assigned to moving leftward the tiles
+            - right_key: the key assigned to moving rightward the tiles
         """
         assert (isinstance(up_key, str) and len(up_key) == 1 
         and isinstance(down_key, str) and len(down_key) == 1
@@ -305,7 +315,66 @@ class GameSettings:
         and isinstance(right_key, str) and len(right_key) == 1)
         self._keys = [up_key, down_key, left_key, right_key]
 
-def azerty():
+    def _build_language(self, language: str):
+        """
+        build the language of the settings
+        ARG:
+            - language: the selected language
+        """
+        assert isinstance(language, str) and language in GameSettings.AVAILABLE_LANGUAGES
+        self._language = language
+
+    def __str__(self) -> str:
+        """
+        return str(self)
+        """
+        return ("Game settings:\n  Directional keys:\n" +
+        "\n".join([f"    {Game.AVAILABLE_DIRECTIONS[i].upper()} : {self._keys[i]}" for i in range(4)]) +
+        f"\n  Language:\n    {self._language}"
+        )
+
+    @property
+    def keys(self) -> list[str]:
+        """
+        return the list of keys
+        """
+        return self._keys
+    
+    @property
+    def up_key(self) -> str:
+        """
+        return the UP key
+        """
+        return self._keys[0]
+
+    @property
+    def down_key(self) -> str:
+        """
+        return the DOWN key
+        """
+        return self._keys[1]
+
+    @property
+    def right_key(self) -> str:
+        """
+        return the DOWN key
+        """
+        return self._keys[1]
+
+    @property
+    def language(self) -> str:
+        """
+        return the language of the interface
+        """
+        return self._language
+
+
+def run_game(settings: GameSettings):
+    """
+    run a game of 2048
+    ARG:
+        - settings: the Game settings (keys, etc.)
+    """
     g = Game()
     g.spawn_random(2, "start")
     while True:
@@ -398,7 +467,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    azerty_settings = GameSettings("z", "s", "q", "d")
+    print(azerty_settings)
+    #main()
 
 #{TODO}
 # 1. fix up and down movements (the while loop use the pos and its just worng because it can jump columns)
