@@ -141,6 +141,9 @@ class Game:
         """
         pass
 
+
+    # ONE DAY, I WILL MERGE tmp_down, tmp_up, tmp_left and tmp_right together but now, i keep them ugly like that
+
     def tmp_down(self) -> None:
         """ TEMPORARY
         change the gravity to the down gravity
@@ -156,17 +159,45 @@ class Game:
                 while current_pos in self._free_spots:
                     current_pos += self._width
                 current_pos -= self._width
-                new_line = current_pos // self._width
+                new_case = current_pos // self._width
                 if origin_pos != current_pos:
-                    self._grid[case][column], self._grid[new_line][column] = self._grid[new_line][column], self._grid[case][column]
+                    self._grid[case][column], self._grid[new_case][column] = self._grid[new_case][column], self._grid[case][column]
                     # update free_spots
                     self._free_spots.remove(current_pos)
                     self._free_spots.add(origin_pos)
                 # merge with the bottom tile if the values are identical
-                if new_line < self._height - 1 and self._grid[new_line][column] == self._grid[new_line+1][column]:
-                    # WHILE INSTEAD OF IF ?
-                    self._grid[new_line][column] = 0
-                    self._grid[new_line+1][column] += 1
+                if new_case < self._height - 1 and self._grid[new_case][column] == self._grid[new_case+1][column]:
+                    # WHILE INSTEAD OF IF ? (in the real game its just an if but we can try our own rice here)
+                    self._grid[new_case][column] = 0
+                    self._grid[new_case + 1][column] += 1
+                    self._free_spots.add(current_pos)
+
+    def tmp_up(self) -> None:
+        """ TEMPORARY
+        change the gravity to the up gravity
+        """
+        if self.is_full():
+            return
+        for column in range(self._width):
+            for case in range(1, self._height):
+                current_pos = origin_pos = case * self._width + column
+                if current_pos in self._free_spots:
+                    continue
+                current_pos -= self._width
+                while current_pos in self._free_spots:
+                    current_pos -= self._width
+                current_pos += self._width
+                new_case = current_pos // self._width
+                if origin_pos != current_pos:
+                    self._grid[case][column], self._grid[new_case][column] = self._grid[new_case][column], self._grid[case][column]
+                    # update free_spots
+                    self._free_spots.remove(current_pos)
+                    self._free_spots.add(origin_pos)
+                # merge with the bottom tile if the values are identical
+                if new_case > 0 and self._grid[new_case][column] == self._grid[new_case - 1][column]:
+                    # WHILE INSTEAD OF IF ? (in the real game its just an if but we can try our own rice here)
+                    self._grid[new_case][column] = 0
+                    self._grid[new_case - 1][column] += 1
                     self._free_spots.add(current_pos)
                 
 
@@ -204,6 +235,6 @@ if __name__ == "__main__":
     g1 = Game()
     g1.spawn_random(15, 'start')
     g1.display()
-    g1.tmp_down()
+    g1.tmp_up()
     print()
     g1.display()
