@@ -1,18 +1,19 @@
 ### What is the order of colors for the theme files: (from line 0 to line 16):
-- 2
-- 4
-- 8
-- 16
-- 32
-- 64
-- 128
-- 256
-- 512
-- 1024
-- 2048
-- 4096
-- 8192
-- 16384
-- 32768
-- 65536
-- 131072
+- NO TILE
+- TILE: 2
+- TILE: 4
+- TILE: 8
+- TILE: 16
+- TILE: 32
+- TILE: 64
+- TILE: 128
+- TILE: 256
+- TILE: 512
+- TILE: 1024
+- TILE: 2048
+- TILE: 4096
+- TILE: 8192
+- TILE: 16384
+- TILE: 32768
+- TILE: 65536
+- TILE: 131072

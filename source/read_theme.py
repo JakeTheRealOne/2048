@@ -25,7 +25,8 @@ INDEX_TO_POWER = [
     131072
 ]
 
-COLORED_PREFIX = "\033[48;2;"
+COLORED_BG_PREFIX = "\033[48;2;"
+COLORED_FG_PREFIX = "\033[38;2;"
 COLORED_MIDLIX = "m"
 COLORED_SUFFIX = "\033[0m"
 
@@ -60,7 +61,9 @@ class Color:
         build the prefix that indiquates that a text must have
         a bg of the current color
         """
-        self._bg_prefix = COLORED_PREFIX + ";".join([str(c) for c in self._rgb]) + COLORED_MIDLIX
+        self._bg_prefix = COLORED_BG_PREFIX + ";".join([str(c) for c in self._rgb]) + COLORED_MIDLIX
+        self._fg_prefix = COLORED_FG_PREFIX + ";".join([str(c) for c in self._rgb]) + COLORED_MIDLIX
+
 
     def __str__(self) -> str:
         """
@@ -84,12 +87,23 @@ class Color:
 
     def bg(self, text: str) -> str:
         """
+        return the background variant of the text
+        ARG:
+            - text: text to add a background color
+        """
+        try:
+            return self._bg_prefix + text + COLORED_SUFFIX
+        except Exception:
+            return text
+
+    def fg(self, text: str) -> str:
+        """
         return the colored variant of the text
         ARG:
             - text: text to color
         """
         try:
-            return self._bg_prefix + text + COLORED_SUFFIX
+            return self._fg_prefix + text + COLORED_SUFFIX
         except Exception:
             return text
 
@@ -130,8 +144,9 @@ class Theme:
         try:
             with open(path, mode="r") as theme_file:
                 content = theme_file.read().split("\n")
-            assert len(content) != 18
+            assert len(content) != 19
             self._build(content)
+            self._name = path.split("/")[-1][:-5]
         except FileNotFoundError:
             raise ThemeError("no theme file found")
         except AssertionError:
@@ -143,7 +158,7 @@ class Theme:
         """
         build the attribute with the content of a theme file
         """
-        self._data = [[Color(0, 0, 0), Color(255, 255, 255)]]
+        self._data = []
         for tile in content:
             bg_color, label_color = tile.split(", ")
             bg = Color(*hex_to_rgb(bg_color))
@@ -160,7 +175,20 @@ class Theme:
         """
         display the colors of the theme
         """
+        print(".", " " * 6, "#", *[t.bg("  ") for t in self._data[0]])
         for i in range(1, 18):
             current = 2 ** i
             spacing = " " * (7 - len(str(current)))
-            print(current, spacing, "#", *[t.colored("  ") for t in self._data[i]])
+            print(current, spacing, "#", *[t.bg("  ") for t in self._data[i]])
+
+    #getters:
+    @property
+    def name(self):
+        """
+        return the name of the theme
+        """
+        return self._name
+
+if __name__ == "__main__":
+    t = Theme("themes/base.dmqu")
+    t.display()

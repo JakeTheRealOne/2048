@@ -7,6 +7,8 @@ Date: June 2024
 import random
 import sys
 from read_theme import Theme
+import os
+from getkey import getkey
 
 # debug:
 random.seed(593438)
@@ -32,7 +34,7 @@ INDEX_TO_POWER = [
     131072
 ]
 
-help_msg = ("Help page:\n  Welcome to 2048! Programmed by JakeTheRealOne"
+HELP_MSG = ("Help page:\n  Welcome to 2048! Programmed by JakeTheRealOne"
 + "\n  Goal: get the highest score possible by adjusting the grid gravity\n"
 + "        two tiles with the same value can merge after changing the gravity\n"
 + "        you loose if you reach a dead end\n  Arguments:\n    --azerty : Start"
@@ -56,7 +58,7 @@ class Game:
         self._height = height
         self._size = width * height
         self._score = 0
-        self._max_tile = 2 # the value of the biggest tile on the grid
+        self._max_tile = 1 # the value of the biggest tile on the grid
         self._build_grid()
 
     def _build_grid(self) -> None:
@@ -77,7 +79,8 @@ class Game:
         else:
             for line in self._grid:
                 for e in line:
-                    print(theme.index(e)[0].bg(str(INDEX_TO_POWER[e]).rjust(max_len)), end="")
+                    colors = theme.index(e)
+                    print(colors[1].fg(colors[0].bg(str(INDEX_TO_POWER[e]).rjust(max_len))), end="")
                 print()
 
     def is_losing(self) -> bool:
@@ -139,7 +142,8 @@ class Game:
             - mode: the mode of the spawn (supported: normal and hell)
         """
         if len(self._free_spots) < number:
-            raise GameError("not enough space to spawn new tiles")
+            # raise GameError("not enough space to spawn new tiles")
+            number = len(self._free_spots) # Will stop after reaching the full grid completion
         for tile in range(number):
             # 1. find a line + column
             pos = random.choice(list(self._free_spots))
@@ -189,7 +193,9 @@ class Game:
                 if y_pos < self._height - 1 and self._grid[y_pos][column] == self._grid[y_pos + 1][column]:
                     self._grid[y_pos][column] = 0
                     self._grid[y_pos + 1][column] += 1
-                    self._max_tile = max(self._max_tile, INDEX_TO_POWER[self._grid[y_pos + 1][column]])
+                    add_to_score = self._grid[y_pos + 1][column]
+                    self._score += INDEX_TO_POWER[add_to_score]
+                    self._max_tile = max(self._max_tile, add_to_score)
                     self._free_spots.add(pos)
 
     def tmp_up(self) -> None:
@@ -217,7 +223,9 @@ class Game:
                 if y_pos > 0 and self._grid[y_pos][column] == self._grid[y_pos - 1][column]:
                     self._grid[y_pos][column] = 0
                     self._grid[y_pos - 1][column] += 1
-                    self._max_tile = max(self._max_tile, INDEX_TO_POWER[self._grid[y_pos - 1][column] ])
+                    add_to_score = self._grid[y_pos - 1][column]
+                    self._score += INDEX_TO_POWER[add_to_score]
+                    self._max_tile = max(self._max_tile, add_to_score)
                     self._free_spots.add(pos)
 
     def tmp_left(self) -> None:
@@ -246,7 +254,9 @@ class Game:
                 if x_pos > 0 and self._grid[line][x_pos] == self._grid[line][x_pos - 1]:
                     self._grid[line][x_pos] = 0
                     self._grid[line][x_pos - 1] += 1
-                    self._max_tile = max(self._max_tile, INDEX_TO_POWER[self._grid[line][x_pos - 1]])
+                    add_to_score = self._grid[line][x_pos - 1]
+                    self._score += INDEX_TO_POWER[add_to_score]
+                    self._max_tile = max(self._max_tile, add_to_score)
                     self._free_spots.add(y_pos + x_pos)
 
     def tmp_right(self) -> None:
@@ -275,7 +285,9 @@ class Game:
                 if x_pos < self._width - 1 and self._grid[line][x_pos] == self._grid[line][x_pos + 1]:
                     self._grid[line][x_pos] = 0
                     self._grid[line][x_pos + 1] += 1
-                    self._max_tile = max(self._max_tile, INDEX_TO_POWER[self._grid[line][x_pos + 1]])
+                    add_to_score = self._grid[line][x_pos + 1]
+                    self._score += INDEX_TO_POWER[add_to_score]
+                    self._max_tile = max(self._max_tile, add_to_score)
                     self._free_spots.add(y_pos + x_pos)
 
     # getters:
@@ -314,21 +326,30 @@ class Game:
         """
         return self._free_spots
 
+    @property
+    def max_tile(self) -> list[list]:
+        """
+        return the list of free spots (without a tile)
+        """
+        return self._max_tile
+
 
 class GameSettings:
     """represent settings of a game of 2048"""
 
     AVAILABLE_LANGUAGES = {"English"}
     AVAILABLE_LAYOUTS = {"cross", "square", "linear", "custom"}
+    AVAILABLE_DIFFICULTIES = {"normal", "hell"}
 
     # methods:
     def __init__(self, up_key: str, down_key: str,
-    left_key: str, right_key: str, theme: Theme, language: str = "English",
+    left_key: str, right_key: str, theme: Theme, difficulty: str = "normal", language: str = "English",
     keys_layout: str = "square", crosses: str = None):
         self._build_keys(up_key, down_key, left_key, right_key)
         self._build_layout(keys_layout, crosses)
         self._build_language(language)
         self._build_theme(theme)
+        self._build_difficulty(difficulty)
 
     def _build_keys(self, up_key: str, down_key: str,
     left_key: str, right_key: str) -> None:
@@ -407,6 +428,17 @@ class GameSettings:
         assert isinstance(theme, Theme)
         self._theme = theme
 
+    def _build_difficulty(self, difficulty: str = "normal") -> None:
+        """
+        build the difficulty of the level
+        SUPPORTED:
+            - normal
+            - hell
+        (see the docstring of Game.spawn_random() to see the changes)
+        """
+        assert isinstance(difficulty, str) and difficulty in GameSettings.AVAILABLE_DIFFICULTIES
+        self._difficulty = difficulty
+
     def __str__(self) -> str:
         """
         return str(self)
@@ -481,6 +513,41 @@ class GameSettings:
         """
         return self._theme
 
+    @property
+    def difficulty(self) -> str:
+        """
+        return the language of the interface
+        """
+        return self._difficulty
+
+
+def clear_terminal() -> None:
+    """
+    clear the terminal
+    """
+    if os.name == "posix": # Unix
+        os.system("clear")
+    else: # Windows
+        os.system("cls")
+
+
+def format_cross_os(unknown) -> str:
+    """
+    On some OS, the getkey output is either:
+        - a string object (Windows 11)
+        - a bytes object (Ubuntu/Debian)
+        - a tuple with both (Arch linux)
+    return the string
+    """
+    if isinstance(unknown, str):
+        return unknown
+    elif isinstance(unknown, bytes):
+        return unknown.decode()
+    elif isinstance(unknown, tuple):
+        return format_cross_os(unknown[0])
+    else:
+        raise GameError("the getkey librairy has an unknown output format on your OS")
+
 
 def run_game(settings: GameSettings):
     """
@@ -488,12 +555,22 @@ def run_game(settings: GameSettings):
     ARG:
         - settings: the Game settings (keys, etc.)
     """
+    clear_terminal()
     g = Game()
     g.spawn_random(2, "start")
-    while True:
+    win_flag = False
+    lose_flag = False
+    while not lose_flag:
         g.display(settings.theme)
-        print(f"use the Z Q S D keys\n{settings.layout}")
-        direction = input("choose a direction: ")
+        print(f"Current score: {g.score}")
+        print(f"Use the {{{" ".join(settings.keys)}}} keys:\n\n{settings.layout}\n")
+        if not win_flag and g.max_tile == 11:
+            win_flag = True
+            if input("You won! Do you want to continue {yes/no}: ").lower() != "yes":
+                clear_terminal()
+                break
+        print("Select a direction: ")
+        direction = format_cross_os(getkey())
         match direction.lower():
             case settings.up_key:
                 g.change_gravity(0)
@@ -504,18 +581,24 @@ def run_game(settings: GameSettings):
             case settings.right_key:
                 g.change_gravity(3)
             case _:
-                print(f"unkown direction: [{(direction.upper()[0] + "..." if len(direction) > 1 else "") if len(direction) else ""}]")
-        g.spawn_random(2)
+                print("Unkown direction: "
+                f"[{(direction.upper()[0] + ("..." if len(direction) > 1 else "")) if len(direction) else ""}]")
+                clear_terminal()
+                continue
+        g.spawn_random(2, settings.difficulty)
         if g.is_losing():
-            break
-        print()
-    print("\nyou loose")
+            lose_flag = True
+        clear_terminal()
+    if lose_flag:
+        print(f"You lost. (final score: {g.score})")
+    else:
+        print(f"final score: {g.score}")
 
 
 def main():
     """run the program"""
     if "--help" in sys.argv[1:]:
-        print(help_msg)
+        print(HELP_MSG)
     elif "--azerty" in sys.argv[1:]:
         run_game(GameSettings("z", "s", "q", "d", keys_layout="cross", theme=Theme("themes/base.dmqu")))
     elif "--qwerty" in sys.argv[1:]:
