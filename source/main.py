@@ -7,11 +7,9 @@ Date: June 2024
 import random
 import sys
 from read_theme import Theme
+import dictionnary
 import os
 from getkey import getkey
-
-# debug:
-random.seed(593438)
 
 INDEX_TO_POWER = [
     ".",
@@ -34,12 +32,12 @@ INDEX_TO_POWER = [
     131072
 ]
 
-HELP_MSG = ("Help page:\n  Welcome to 2048! Programmed by JakeTheRealOne"
-+ "\n  Goal: get the highest score possible by adjusting the grid gravity\n"
-+ "        two tiles with the same value can merge after changing the gravity\n"
-+ "        you loose if you reach a dead end\n  Arguments:\n    --azerty : Start"
-+ " a game in Azerty mode\n    --qwerty : Start a game in Qwerty mode"
-+ "\n    --vim : Start a game as a GigaChad\n  Credit: the author of the game is Gabriele Cirulli")
+# HELP_MSG = ("Help page:\n  Welcome to 2048! Programmed by JakeTheRealOne"
+# + "\n  Goal: get the highest score possible by adjusting the grid gravity\n"
+# + "        two tiles with the same value can merge after changing the gravity\n"
+# + "        you loose if you reach a dead end\n  Arguments:\n    --azerty : Start"
+# + " a game in Azerty mode\n    --qwerty : Start a game in Qwerty mode"
+# + "\n    --vim : Start a game as a GigaChad\n  Credit: the author of the game is Gabriele Cirulli")
 
 
 class GameError(Exception):
@@ -337,7 +335,7 @@ class Game:
 class GameSettings:
     """represent settings of a game of 2048"""
 
-    AVAILABLE_LANGUAGES = {"English"}
+    AVAILABLE_LANGUAGES = {"English": 0, "French": 1}
     AVAILABLE_LAYOUTS = {"cross", "square", "linear", "custom"}
     AVAILABLE_DIFFICULTIES = {"normal", "hell"}
 
@@ -418,6 +416,7 @@ class GameSettings:
         """
         assert isinstance(language, str) and language in GameSettings.AVAILABLE_LANGUAGES
         self._language = language
+        self._lg_index = GameSettings.AVAILABLE_LANGUAGES[language]
 
     def _build_theme(self, theme: Theme) -> None:
         """
@@ -445,7 +444,7 @@ class GameSettings:
         """
         return ("Game settings:\n  Directional keys:\n" +
         "\n".join([f"    {Game.AVAILABLE_DIRECTIONS[i].upper()} : {self._keys[i]}" for i in range(4)]) +
-        f"\n  Language:\n    {self._language}"
+        f"\n  Language:\n    {self._language}\n  Theme:\n    {self._theme.name}\n  Difficulty:\n    {self._difficulty}"
         )
 
     def __eq__(self, gs2: "GameSettings") -> bool:
@@ -507,6 +506,13 @@ class GameSettings:
         return self._language
 
     @property
+    def language_index(self) -> str:
+        """
+        return the language index for the dictionnary
+        """
+        return self._lg_index
+  
+    @property
     def theme(self) -> str:
         """
         return the language of the interface
@@ -558,18 +564,24 @@ def run_game(settings: GameSettings):
     clear_terminal()
     g = Game()
     g.spawn_random(2, "start")
+    direction = "?"
     win_flag = False
     lose_flag = False
+    err_flag = False
     while not lose_flag:
         g.display(settings.theme)
-        print(f"Current score: {g.score}")
-        print(f"Use the {{{" ".join(settings.keys)}}} keys:\n\n{settings.layout}\n")
+        print(f"{dictionnary.ALLS["current_score"][settings.language_index]}: {g.score}")
+        if err_flag:
+            print(dictionnary.ALLS["unknown_direction"][settings.language_index] +
+            f" [{(repr(direction.upper()[0])[1:-1] + ("..." if len(direction) > 1 else "")) if len(direction) else ""}]")
+            err_flag = False
+        print(f"{dictionnary.ALLS["use"][settings.language_index]} {{{" ".join(settings.keys)}}}\n\n{settings.layout}\n")
         if not win_flag and g.max_tile == 11:
             win_flag = True
-            if input("You won! Do you want to continue {yes/no}: ").lower() != "yes":
+            if input(dictionnary.ALLS["won_msg"][settings.language_index]).lower() != dictionnary.ALLS["yes"][settings.language_index]:
                 clear_terminal()
                 break
-        print("Select a direction: ")
+        print(dictionnary.ALLS["select_direction"][settings.language_index])
         direction = format_cross_os(getkey())
         match direction.lower():
             case settings.up_key:
@@ -581,8 +593,7 @@ def run_game(settings: GameSettings):
             case settings.right_key:
                 g.change_gravity(3)
             case _:
-                print("Unkown direction: "
-                f"[{(direction.upper()[0] + ("..." if len(direction) > 1 else "")) if len(direction) else ""}]")
+                err_flag = True
                 clear_terminal()
                 continue
         g.spawn_random(2, settings.difficulty)
@@ -590,23 +601,31 @@ def run_game(settings: GameSettings):
             lose_flag = True
         clear_terminal()
     if lose_flag:
-        print(f"You lost. (final score: {g.score})")
+        print(f"{dictionnary.ALLS["you_lost"][settings.language_index]}. ({dictionnary.ALLS["final_score"][settings.language_index]}: {g.score})")
     else:
-        print(f"final score: {g.score}")
+        print(f"{dictionnary.ALLS["final_score"][settings.language_index]}: {g.score}")
 
 
 def main():
     """run the program"""
     if "--help" in sys.argv[1:]:
-        print(HELP_MSG)
-    elif "--azerty" in sys.argv[1:]:
-        run_game(GameSettings("z", "s", "q", "d", keys_layout="cross", theme=Theme("themes/base.dmqu")))
-    elif "--qwerty" in sys.argv[1:]:
-        run_game(GameSettings("w", "s", "a", "d", keys_layout="cross", theme=Theme("themes/base.dmqu")))
-    elif "--vim" in sys.argv[1:]:
-        run_game(GameSettings("k", "j", "h", "l", keys_layout="linear", theme=Theme("themes/base.dmqu")))
+        print(dictionnary.ALLS["help_msg"]["--i-like-baguettes" in sys.argv[1:]])
     else:
-        run_game(GameSettings("z", "s", "q", "d", keys_layout="cross", theme=Theme("themes/base.dmqu")))
+        keys = "z", "s", "q", "d"
+        layout = "cross"
+        if "--qwerty" in sys.argv[1:]:
+            keys = "w", "s", "a", "d"
+        elif "--vim" in sys.argv[1:]:
+            keys = "k", "j", "h", "l"
+            layout = "linear"
+        
+        theme = Theme("themes/base.dmqu")
+
+        language = "English"
+        if "--i-like-baguettes" in sys.argv[1:]:
+            language = "French"
+        settings = GameSettings(*keys, theme=theme, language=language, keys_layout=layout)
+        run_game(settings)
 
 
 if __name__ == "__main__":
