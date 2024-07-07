@@ -13,24 +13,45 @@ Date: July 2024
 ALLS = {
     "help_msg":
     [
-        ("Help page:\n  Welcome to 2048! Programmed by JakeTheRealOne"
-        + "\n  Goal: get the highest score possible by adjusting the" 
-        + " grid gravity\n        two tiles with the same value can merge"
-        + " after changing the gravity\n        you loose if you reach"
-        + " a dead end\n  Arguments:\n    --azerty : Start a game in"
-        + " Azerty mode\n    --qwerty : Start a game in Qwerty mode\n"
-        + "    --vim : Start a game as a GigaChad\n    "
-        + "--i-like-baguette: Switch to french language\n  Credit: the author"
-        + " of the game is Gabriele Cirulli"),
-        ("Page d'aide:\n  Bienvenue sur le 2048! Programmé par JakeLeVrai"
-        + "\n  Objectif: obtenir le score le plus haut en arrengeant la " 
-        + "gravité de la grille\n            deux tuiles de même valeur peuvent fusionner"
-        + " après un changement de gravité\n            vous perdez si vous atteignez"
-        + " un cul-de-sac\n  Paramètres:\n    --azerty : Commencer une partie"
-        + " avec les contrôles Azerty\n    --qwerty : Commencer une partie avec " 
-        + "les contrôles Qwerty\n    --vim : Commencer une partie comme un"
-        + " GigaChad\n    --i-like-baguette: Passez la langue en français\n"
-        + "  Crédit: l'auteur du jeu est Gabriele Cirulli")
+        ("usage: main.py [--help] [--azerty | --qwerty | --vim] [--english | --french | --chinese] [--theme] [--clear]\n"
+        "\n"
+        "options:\n"
+        "    -h, --help          show the help page\n"
+        "  keys:\n"
+        "    --azerty            start a game with the Z Q S D keys as directional keys\n"
+        "    --qwerty            start a game with the W A S D keys as directional keys\n"
+        "    --vim               start a game as a gigachad (VIM keys)\n"
+        "  languages:\n"
+        "    --english, -en      set the language to English\n"
+        "    --french, -fr       set the language to French\n"
+        "    --chinese, -zh      set the language to Mandarin Chinese\n"
+        "  extras:\n"
+        "    --theme 'my_theme'  start a game with custom theme (all available in the themes directory)\n"
+        "    --clear             clear all datas about the user (best score etc.)\n"
+        "\n"
+        "credits:\n"
+        "  the author of the game is Gabriele Cirulli\n"
+        ),
+        (
+        "utilisation: main.py [--help] [--azerty | --qwerty | --vim] [--english | --french | --chinese] [--theme] [--clear]\n"
+        "\n"
+        "options:\n"
+        "    -h, --help          affiche cette page d'aide\n"
+        "  touches:\n"
+        "    --azerty            débute une partie en utilisant les touches Z Q S D\n"
+        "    --qwerty            débute une partie en utilisant les touches W A S D\n"
+        "    --vim               devient un gigachad (touches VIM)\n"
+        "  langues:\n"
+        "    --english, -en      règle la langue sur Anglais\n"
+        "    --french, -fr       règle la langue sur Français\n"
+        "    --chinese, -zh      règle la langue sur Mandarin\n"
+        "  extras:\n"
+        "    --theme 'mon_theme' débute une partie avec un thème personnalisé (tous sont disponibles dans le dossier themes)\n"
+        "    --clear             supprime toutes les données enregistrées (meilleur score etc.)\n"
+        "\n"
+        "crédits:\n"
+        "  l'auteur du jeu est Gabriele Cirulli\n"
+        )
     ],
     "current_score":
     [
@@ -80,5 +101,17 @@ ALLS = {
         "You lost.",
         "Vous avez perdu.",
         "你输了"
+    ],
+    "clear_error":
+    [
+        "There was an error while deleting user data.",
+        "Il y a eu une erreur lors de la suppression des données utilisateurs.",
+        "删除用户数据时出现错误"
+    ],
+    "clear_success":
+    [
+        "User data successfully deleted!",
+        "Données utilisateur supprimées avec succès!",
+        "用户数据已成功删除！"
     ]
 }

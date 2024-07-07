@@ -5,7 +5,7 @@ Date: June 2024
 """
 
 import random
-import sys
+import shutil as st
 from read_theme import Theme
 import dictionnary
 import os
@@ -574,63 +574,6 @@ def show_help(language: str) -> None:
             raise GameError(f"internal error while print the help page in {language}")
 
 
-def build_parser() -> tuple:
-    """
-    build the argument parser
-    """
-    parser = ap.ArgumentParser(add_help=True)
-    parser.add_argument(
-        "--custom-help", "-ch", help="get the custom help page", action="store_true"
-    )
-    keyboard = parser.add_mutually_exclusive_group()
-    keyboard.add_argument(
-        "--azerty", help="run the game with the Z Q S D keys as directional keys", action="store_true"
-    )
-    keyboard.add_argument(
-        "--qwerty", help="run the game with the W A S D keys as directional keys", action="store_true"
-    )
-    keyboard.add_argument(
-        "--vim", help="run the game as a gigachad (VIM keys)", action="store_true"
-    )
-    language = parser.add_mutually_exclusive_group()
-    language.add_argument(
-        "--english", "-en", help="run the game in English", action="store_true"
-    )
-    language.add_argument(
-        "--french", "-fr", help="run the game in French", action="store_true"
-    )
-    language.add_argument(
-        "--chinese", "-zh", help="run the game in Mandarin Chinese", action="store_true"
-    )
-    return parser
-
-
-def parse_language(args: ap.ArgumentParser):
-    """
-    get the selected language from the arguments
-    """
-    lang = "English"
-    if args.french:
-        lang = "French"
-    elif args.chinese:
-        lang = "Chinese"
-    return lang
-
-
-def parse_keyboard(args: ap.ArgumentParser):
-    """
-    get the selected keyboard setting from the arguments
-    """
-    keys = "z", "s", "q", "d"
-    layout = "cross"
-    if args.qwerty:
-        keys = "w", "s", "a", "d"
-    elif args.vim:
-        keys = "k", "j", "h", "l"
-        layout = "linear"
-    return keys, layout
-
-
 def run_game(settings: GameSettings) -> None:
     """
     run a game of 2048
@@ -677,34 +620,15 @@ def run_game(settings: GameSettings) -> None:
         clear_terminal()
     if lose_flag:
         print(f"{dictionnary.ALLS["you_lost"][settings.language_index]} ({dictionnary.ALLS["final_score"][settings.language_index]}: {g.score})")
+        # g.display()
     else:
         print(f"{dictionnary.ALLS["final_score"][settings.language_index]}: {g.score}")
 
 
-# def main():
-#     """
-#     run the program
-#     """
-#     if "--help" in sys.argv[1:]:
-#         print(dictionnary.ALLS["help_msg"]["--i-like-baguettes" in sys.argv[1:]])
-#     else:
-#         keys = "z", "s", "q", "d"
-#         layout = "cross"
-#         if "--qwerty" in sys.argv[1:]:
-#             keys = "w", "s", "a", "d"
-#         elif "--vim" in sys.argv[1:]:
-#             keys = "k", "j", "h", "l"
-#             layout = "linear"
-        
-#         theme = Theme("themes/base.dmqu")
-
-#         language = "English"
-#         if "--i-like-baguettes" in sys.argv[1:]:
-#             language = "French"
-#         settings = GameSettings(*keys, theme=theme, language=language, keys_layout=layout)
-#         run_game(settings)
-
-def init_memory():
+def init_memory() -> None:
+    """
+    create memory files if not yet existing
+    """
     if not os.path.exists("memory") or not os.path.isdir("memory"):
         os.mkdir("memory")
         with open("memory/best_score", mode="w+") as f:
@@ -713,14 +637,103 @@ def init_memory():
         with open("memory/best_score", mode="w+") as f:
             f.write("0")
 
+
+def build_parser() -> ap.ArgumentParser:
+    """
+    build the argument parser
+    """
+    parser = ap.ArgumentParser(add_help=False)
+    parser.add_argument(
+        "--help", "-h", help="get the custom help page", action="store_true"
+    )
+    keyboard = parser.add_mutually_exclusive_group()
+    keyboard.add_argument(
+        "--azerty", help="run the game with the Z Q S D keys as directional keys", action="store_true"
+    )
+    keyboard.add_argument(
+        "--qwerty", help="run the game with the W A S D keys as directional keys", action="store_true"
+    )
+    keyboard.add_argument(
+        "--vim", help="run the game as a gigachad (VIM keys)", action="store_true"
+    )
+    language = parser.add_mutually_exclusive_group()
+    language.add_argument(
+        "--english", "-en", help="run the game in English", action="store_true"
+    )
+    language.add_argument(
+        "--french", "-fr", help="run the game in French", action="store_true"
+    )
+    language.add_argument(
+        "--chinese", "-zh", help="run the game in Mandarin Chinese", action="store_true"
+    )
+    parser.add_argument("--clear", help="clear all user data", action="store_true")
+    return parser
+
+
+def parse_language(args: ap.ArgumentParser) -> str:
+    """
+    get the selected language from the arguments
+    """
+    lang = "English"
+    if args.french:
+        lang = "French"
+    elif args.chinese:
+        lang = "Chinese"
+    return lang
+
+
+def parse_keyboard(args: ap.ArgumentParser) -> tuple:
+    """
+    get the selected keyboard setting from the arguments
+    """
+    keys = "z", "s", "q", "d"
+    layout = "cross"
+    if args.qwerty:
+        keys = "w", "s", "a", "d"
+    elif args.vim:
+        keys = "k", "j", "h", "l"
+        layout = "linear"
+    return keys, layout
+
+
+def clear_memory(language: str):
+    """
+    clear all datas saved
+    """
+    try:
+        st.rmtree("memory")
+    except Exception:
+        match language:
+            case "English":
+                print(dictionnary.ALLS["clear_error"][0])
+            case "French":
+                print(dictionnary.ALLS["clear_error"][1])
+            case "Chinese":
+                print(dictionnary.ALLS["clear_error"][2])
+            case _:
+                print(dictionnary.ALLS["clear_success"][0])
+    else:
+        match language:
+            case "English":
+                print(dictionnary.ALLS["clear_success"][0])
+            case "French":
+                print(dictionnary.ALLS["clear_success"][1])
+            case "Chinese":
+                print(dictionnary.ALLS["clear_success"][2])
+            case _:
+                print(dictionnary.ALLS["clear_success"][0])
+
 def main() -> None:
     """
     run the program
     """
+    init_memory()
     parser = build_parser()
     args = parser.parse_args()
     lang = parse_language(args)
-    if args.custom_help:
+    if args.clear:
+        clear_memory(lang)
+    elif args.help:
         show_help(lang)
     else:
         keys, layout = parse_keyboard(args)
@@ -728,8 +741,8 @@ def main() -> None:
         settings = GameSettings(*keys, theme=theme, language=lang, keys_layout=layout)
         run_game(settings)
 
+
 if __name__ == "__main__":
-    init_memory()
     main()
 
 #{TODO}

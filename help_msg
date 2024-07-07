@@ -1,0 +1,18 @@
+utilisation: main.py [--help] [--azerty | --qwerty | --vim] [--english | --french | --chinese] [--theme] [--clear]
+
+options:
+    -h, --help          affiche cette page d'aide
+  touches:
+    --azerty            débute une partie en utilisant les touches Z Q S D
+    --qwerty            débute une partie en utilisant les touches W A S D
+    --vim               devient un gigachad (touches VIM)
+  langues:
+    --english, -en      règle la langue sur Anglais
+    --french, -fr       règle la langue sur Français
+    --chinese, -zh      règle la langue sur Mandarin
+  extras:
+    --theme, -t 'mon_theme' débute une partie avec un thème personnalisé (tous sont disponibles dans le dossier themes)
+    --clear             supprime toutes les données enregistrées (meilleur score etc.)
+
+crédits:
+  l'auteur du jeu est Gabriele Cirulli
