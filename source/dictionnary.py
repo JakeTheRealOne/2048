@@ -54,8 +54,8 @@ ALLS = {
     ],
     "select_direction":
     [
-        "⌄ Select a direction ⌄",
-        "⌄ Choisissez une direction ⌄"
+        "⌄ Select a direction",
+        "⌄ Choisissez une direction"
     ],
     "unknown_direction":
     [

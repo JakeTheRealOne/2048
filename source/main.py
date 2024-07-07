@@ -71,7 +71,7 @@ class Game:
         """
         show in the terminal the grid of the game
         """
-        max_len = len(str(self._max_tile)) + 1
+        max_len = len(str(INDEX_TO_POWER[self._max_tile])) + 1
         if theme is None:
             for line in self._grid:
                 print(" ".join([str(INDEX_TO_POWER[e]) for e in line]))
@@ -555,7 +555,7 @@ def format_cross_os(unknown) -> str:
     else:
         raise GameError("the getkey librairy has an unknown output format on your OS")
 
-def show_help() -> None:
+def show_help(language: str) -> None:
     print(dictionnary.ALLS["help_msg"][0])
 
 def main_better():
@@ -564,7 +564,7 @@ def main_better():
     """
     parser = ap.ArgumentParser(add_help=True)
     parser.add_argument(
-        "--custom-help", "-h", help="get the custom help page", action="store_true"
+        "--custom-help", "-ch", help="get the custom help page", action="store_true"
     )
     keyboard = parser.add_mutually_exclusive_group()
     keyboard.add_argument(
@@ -576,19 +576,39 @@ def main_better():
     keyboard.add_argument(
         "--vim", help="run the game as a gigachad (VIM keys)", action="store_true"
     )
+    language = parser.add_mutually_exclusive_group()
+    language.add_argument(
+        "--english", "-en", help="run the game in English", action="store_true"
+    )
+    language.add_argument(
+        "--french", "-fr", help="run the game in French", action="store_true"
+    )
+    language.add_argument(
+        "--chinese", "-zh", help="run the game in Mandarin Chinese", action="store_true"
+    )
     args = parser.parse_args()
-    if args.help:
-        show_help()
+    # LANGUAGE:
+    #lang = parse_language(args)
+    lang = "English"
+    if args.french:
+        lang = "French"
+    elif args.chinese:
+        lang = "Chinese"
+    if args.custom_help:
+        show_help(lang)
     else:
         # Building the game settings
-        # LANGUAGE:
+        # KEYBOARD:
         keys = "z", "s", "q", "d"
         layout = "cross"
-        if "--qwerty" in sys.argv[1:]:
+        if args.qwerty:
             keys = "w", "s", "a", "d"
-        elif "--vim" in sys.argv[1:]:
+        elif args.vim:
             keys = "k", "j", "h", "l"
             layout = "linear"
+        theme = Theme("themes/base.dmqu")
+        settings = GameSettings(*keys, theme=theme, language=lang, keys_layout=layout)
+        run_game(settings)
 
 def run_game(settings: GameSettings) -> None:
     """
@@ -670,3 +690,4 @@ if __name__ == "__main__":
 
 #{TODO}
 # 2. add settings management and remember preferences in a settings file
+# 3. block the turn if no movement are mades
