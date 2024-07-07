@@ -704,6 +704,14 @@ def run_game(settings: GameSettings) -> None:
 #         settings = GameSettings(*keys, theme=theme, language=language, keys_layout=layout)
 #         run_game(settings)
 
+def init_memory():
+    if not os.path.exists("memory") or not os.path.isdir("memory"):
+        os.mkdir("memory")
+        with open("memory/best_score", mode="w+") as f:
+            f.write("0")
+    if not os.path.exists("memory/best_score") or not os.path.isfile("memory/best_score"):
+        with open("memory/best_score", mode="w+") as f:
+            f.write("0")
 
 def main() -> None:
     """
@@ -721,6 +729,7 @@ def main() -> None:
         run_game(settings)
 
 if __name__ == "__main__":
+    init_memory()
     main()
 
 #{TODO}

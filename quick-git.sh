@@ -1,4 +1,6 @@
 cd $HOME/Devloper/2048
+mkdir -p memory
+echo "0" > memory/best_score
 git add .
 echo "Enter the main purpose of your commit: "
 read purpose
