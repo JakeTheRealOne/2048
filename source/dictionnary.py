@@ -35,41 +35,50 @@ ALLS = {
     "current_score":
     [
         "Current score",
-        "Score actuel"
+        "Score actuel",
+        "当前得分"
     ],
     "use":
     [
         "Use these keys:",
-        "Touches directionnelles:"
+        "Touches directionnelles:",
+        "方向键:"
     ],
     "won_msg":
     [
         "You won! Do you want to continue {yes/no}: ",
-        "Vous avez gagné! Voulez-vous continuer {oui/non}: "
+        "Vous avez gagné! Voulez-vous continuer {oui/non}: ",
+        "您赢了！还想继续吗？ {是的/没有} :"
     ],
     "yes":
     [
         "yes",
-        "oui"
+        "oui",
+        "是的"
     ],
     "select_direction":
     [
         "⌄ Select a direction",
-        "⌄ Choisissez une direction"
+        "⌄ Choisissez une direction",
+        "选择方向"
     ],
     "unknown_direction":
     [
         "Unknown direction",
-        "Direction inconnue"
+        "Direction inconnue",
+        "方向不明"
+
     ],
     "final_score":
     [
         "final score",
-        "score final"
+        "score final",
+        "最后得分"
     ],
     "you_lost":
     [
-        "You lost",
-        "Vous avez perdu"
+        "You lost.",
+        "Vous avez perdu.",
+        "你输了"
     ]
 }

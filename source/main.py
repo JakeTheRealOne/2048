@@ -52,7 +52,7 @@ class Game:
     AVAILABLE_DIRECTIONS = ["up", "down", "left", "right"]
 
     # methods:
-    def __init__(self, width: int = 4, height: int = 4):
+    def __init__(self, width: int = 2, height: int = 2):
         self._width = width
         self._height = height
         self._size = width * height
@@ -87,8 +87,11 @@ class Game:
         return if the game is in a dead end
         """
         if self.is_full():
-            # TODO: find an easy way to say if its over
-            return True # temporary
+            for y in range(self._width - 1):
+                for x in range(self._height - 1):
+                    if self._grid[x][y] == self._grid[x][y + 1] or self._grid[x][y] == self._grid[x + 1][y]:
+                        return False
+            return True
         else:
             return False
 
@@ -166,8 +169,9 @@ class Game:
         (self.tmp_up, self.tmp_down, self.tmp_left, self.tmp_right)[orientation]()
 
     # ONE DAY, I WILL MERGE tmp_down, tmp_up, tmp_left and tmp_right together but now, i keep them ugly like that
+    # (and modify the return value to specify if there was a change in the grid during the execution)
 
-    def tmp_down(self) -> None:
+    def tmp_down(self) -> bool:
         """ TEMPORARY
         change the gravity to the down gravity
         """
@@ -197,7 +201,7 @@ class Game:
                     self._max_tile = max(self._max_tile, add_to_score)
                     self._free_spots.add(pos)
 
-    def tmp_up(self) -> None:
+    def tmp_up(self) -> bool:
         """ TEMPORARY
         change the gravity to the up gravity
         """
@@ -227,7 +231,7 @@ class Game:
                     self._max_tile = max(self._max_tile, add_to_score)
                     self._free_spots.add(pos)
 
-    def tmp_left(self) -> None:
+    def tmp_left(self) -> bool:
         """ TEMPORARY
         change the gravity to the left gravity
         """
@@ -258,7 +262,7 @@ class Game:
                     self._max_tile = max(self._max_tile, add_to_score)
                     self._free_spots.add(y_pos + x_pos)
 
-    def tmp_right(self) -> None:
+    def tmp_right(self) -> bool:
         """ TEMPORARY
         change the gravity to the right gravity
         """
@@ -336,7 +340,7 @@ class Game:
 class GameSettings:
     """represent settings of a game of 2048"""
 
-    AVAILABLE_LANGUAGES = {"English": 0, "French": 1}
+    AVAILABLE_LANGUAGES = {"English": 0, "French": 1, "Chinese": 2}
     AVAILABLE_LAYOUTS = {"cross", "square", "linear", "custom"}
     AVAILABLE_DIFFICULTIES = {"normal", "hell"}
 
@@ -556,11 +560,20 @@ def format_cross_os(unknown) -> str:
         raise GameError("the getkey librairy has an unknown output format on your OS")
 
 def show_help(language: str) -> None:
-    print(dictionnary.ALLS["help_msg"][0])
+    match language:
+        case "English":
+            print(dictionnary.ALLS["help_msg"][0])
+        case "French":
+            print(dictionnary.ALLS["help_msg"][1])
+        case "Chinese":
+            raise GameError("help page in chinese comming soon...")
+            print(dictionnary.ALLS["help_msg"][2])
+        case _:
+            raise GameError(f"internal error while print the help page in {language}")
 
-def main_better():
+def build_parser() -> tuple:
     """
-    parse the arguments and run the program
+    build the argument parser
     """
     parser = ap.ArgumentParser(add_help=True)
     parser.add_argument(
@@ -586,29 +599,31 @@ def main_better():
     language.add_argument(
         "--chinese", "-zh", help="run the game in Mandarin Chinese", action="store_true"
     )
-    args = parser.parse_args()
-    # LANGUAGE:
-    #lang = parse_language(args)
+    return parser
+
+def parse_language(args: ap.ArgumentParser):
+    """
+    get the selected language from the arguments
+    """
     lang = "English"
     if args.french:
         lang = "French"
     elif args.chinese:
         lang = "Chinese"
-    if args.custom_help:
-        show_help(lang)
-    else:
-        # Building the game settings
-        # KEYBOARD:
-        keys = "z", "s", "q", "d"
-        layout = "cross"
-        if args.qwerty:
-            keys = "w", "s", "a", "d"
-        elif args.vim:
-            keys = "k", "j", "h", "l"
-            layout = "linear"
-        theme = Theme("themes/base.dmqu")
-        settings = GameSettings(*keys, theme=theme, language=lang, keys_layout=layout)
-        run_game(settings)
+    return lang
+
+def parse_keyboard(args: ap.ArgumentParser):
+    """
+    get the selected keyboard setting from the arguments
+    """
+    keys = "z", "s", "q", "d"
+    layout = "cross"
+    if args.qwerty:
+        keys = "w", "s", "a", "d"
+    elif args.vim:
+        keys = "k", "j", "h", "l"
+        layout = "linear"
+    return keys, layout
 
 def run_game(settings: GameSettings) -> None:
     """
@@ -652,42 +667,55 @@ def run_game(settings: GameSettings) -> None:
                 clear_terminal()
                 continue
         g.spawn_random(2, settings.difficulty)
-        if g.is_losing():
-            lose_flag = True
-        clear_terminal()
+        lose_flag = g.is_losing()
     if lose_flag:
-        print(f"{dictionnary.ALLS["you_lost"][settings.language_index]}. ({dictionnary.ALLS["final_score"][settings.language_index]}: {g.score})")
+        print(f"{dictionnary.ALLS["you_lost"][settings.language_index]} ({dictionnary.ALLS["final_score"][settings.language_index]}: {g.score})")
     else:
         print(f"{dictionnary.ALLS["final_score"][settings.language_index]}: {g.score}")
 
+# def main():
+#     """
+#     run the program
+#     """
+#     if "--help" in sys.argv[1:]:
+#         print(dictionnary.ALLS["help_msg"]["--i-like-baguettes" in sys.argv[1:]])
+#     else:
+#         keys = "z", "s", "q", "d"
+#         layout = "cross"
+#         if "--qwerty" in sys.argv[1:]:
+#             keys = "w", "s", "a", "d"
+#         elif "--vim" in sys.argv[1:]:
+#             keys = "k", "j", "h", "l"
+#             layout = "linear"
+        
+#         theme = Theme("themes/base.dmqu")
 
-def main():
+#         language = "English"
+#         if "--i-like-baguettes" in sys.argv[1:]:
+#             language = "French"
+#         settings = GameSettings(*keys, theme=theme, language=language, keys_layout=layout)
+#         run_game(settings)
+
+def main() -> None:
     """
     run the program
     """
-    if "--help" in sys.argv[1:]:
-        print(dictionnary.ALLS["help_msg"]["--i-like-baguettes" in sys.argv[1:]])
+    parser = build_parser()
+    args = parser.parse_args()
+    lang = parse_language(args)
+    if args.custom_help:
+        show_help(lang)
     else:
-        keys = "z", "s", "q", "d"
-        layout = "cross"
-        if "--qwerty" in sys.argv[1:]:
-            keys = "w", "s", "a", "d"
-        elif "--vim" in sys.argv[1:]:
-            keys = "k", "j", "h", "l"
-            layout = "linear"
-        
+        keys, layout = parse_keyboard(args)
         theme = Theme("themes/base.dmqu")
-
-        language = "English"
-        if "--i-like-baguettes" in sys.argv[1:]:
-            language = "French"
-        settings = GameSettings(*keys, theme=theme, language=language, keys_layout=layout)
+        settings = GameSettings(*keys, theme=theme, language=lang, keys_layout=layout)
         run_game(settings)
 
-
 if __name__ == "__main__":
-    main_better()
+    main()
 
 #{TODO}
 # 2. add settings management and remember preferences in a settings file
 # 3. block the turn if no movement are mades
+# 4. do Game.is_lose
+# 5. do GameSettings custom key layout
