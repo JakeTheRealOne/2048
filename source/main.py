@@ -10,6 +10,7 @@ from read_theme import Theme
 import dictionnary
 import os
 from getkey import getkey
+import argparse as ap
 
 INDEX_TO_POWER = [
     ".",
@@ -554,8 +555,42 @@ def format_cross_os(unknown) -> str:
     else:
         raise GameError("the getkey librairy has an unknown output format on your OS")
 
+def show_help() -> None:
+    print(dictionnary.ALLS["help_msg"][0])
 
-def run_game(settings: GameSettings):
+def main_better():
+    """
+    parse the arguments and run the program
+    """
+    parser = ap.ArgumentParser(add_help=True)
+    parser.add_argument(
+        "--custom-help", "-h", help="get the custom help page", action="store_true"
+    )
+    keyboard = parser.add_mutually_exclusive_group()
+    keyboard.add_argument(
+        "--azerty", help="run the game with the Z Q S D keys as directional keys", action="store_true"
+    )
+    keyboard.add_argument(
+        "--qwerty", help="run the game with the W A S D keys as directional keys", action="store_true"
+    )
+    keyboard.add_argument(
+        "--vim", help="run the game as a gigachad (VIM keys)", action="store_true"
+    )
+    args = parser.parse_args()
+    if args.help:
+        show_help()
+    else:
+        # Building the game settings
+        # LANGUAGE:
+        keys = "z", "s", "q", "d"
+        layout = "cross"
+        if "--qwerty" in sys.argv[1:]:
+            keys = "w", "s", "a", "d"
+        elif "--vim" in sys.argv[1:]:
+            keys = "k", "j", "h", "l"
+            layout = "linear"
+
+def run_game(settings: GameSettings) -> None:
     """
     run a game of 2048
     ARG:
@@ -607,7 +642,9 @@ def run_game(settings: GameSettings):
 
 
 def main():
-    """run the program"""
+    """
+    run the program
+    """
     if "--help" in sys.argv[1:]:
         print(dictionnary.ALLS["help_msg"]["--i-like-baguettes" in sys.argv[1:]])
     else:
@@ -629,7 +666,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main_better()
 
 #{TODO}
 # 2. add settings management and remember preferences in a settings file
