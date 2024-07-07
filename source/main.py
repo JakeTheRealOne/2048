@@ -52,7 +52,7 @@ class Game:
     AVAILABLE_DIRECTIONS = ["up", "down", "left", "right"]
 
     # methods:
-    def __init__(self, width: int = 2, height: int = 2):
+    def __init__(self, width: int = 4, height: int = 4):
         self._width = width
         self._height = height
         self._size = width * height
@@ -82,7 +82,7 @@ class Game:
                     print(colors[1].fg(colors[0].bg(str(INDEX_TO_POWER[e]).rjust(max_len))), end="")
                 print()
 
-    def is_losing(self) -> bool:
+    def is_lost(self) -> bool:
         """
         return if the game is in a dead end
         """
@@ -347,9 +347,9 @@ class GameSettings:
     # methods:
     def __init__(self, up_key: str, down_key: str,
     left_key: str, right_key: str, theme: Theme, difficulty: str = "normal", language: str = "English",
-    keys_layout: str = "square", crosses: str = None):
+    keys_layout: str = "square", custom_UDLR: str = None):
         self._build_keys(up_key, down_key, left_key, right_key)
-        self._build_layout(keys_layout, crosses)
+        self._build_layout(keys_layout, custom_UDLR)
         self._build_language(language)
         self._build_theme(theme)
         self._build_difficulty(difficulty)
@@ -372,13 +372,13 @@ class GameSettings:
         and isinstance(right_key, str) and len(right_key) == 1)
         self._keys = [up_key, down_key, left_key, right_key]
 
-    def _build_layout(self, layout: str = "square", crosses: str = None) -> None:
+    def _build_layout(self, layout: str = "square", custom_UDLR: str = None) -> None:
         """
         build the layout of the keys to display each turn of the game
         AVAILABLES:
             {"cross", "square", "linear", "custom"}
         CUSTOM:
-            if layout == custom: the arg is a string that contains letters U, D, L and R
+            if layout == 'custom': the arg is a string that contains letters U, D, L and R
             (up down left right) and as much blank caracters as you want. Ex:
                 LUR
                  D
@@ -394,24 +394,25 @@ class GameSettings:
             case "linear": # ex: VIM keys
                 self._layout = f"[{self.left_key.upper()}][{self.down_key.upper()}][{self.up_key.upper()}][{self.right_key.upper()}]"
             case "custom":
-                if crosses:
-                    self._build_custom(crosses)
+                if custom_UDLR:
+                    self._build_custom(custom_UDLR)
                 else:
                     raise GameError("building a custom layout require a manual layout"
                     " as last argument of the constructor\nEXAMPLE:\nLUR\n D ")
             case _:
                 raise GameError(f"unkown layout: {layout[:16] + ('...' if len(layout) > 16 else '')}")
 
-    def _build_custom(crosses: str) -> None:
+    def _build_custom(self, custom_UDLR: str) -> None:
         """
         build the layout as custom
-        crosses ARG:
-            the crosses argument is a string that contains exactly 4 "X"
+        custom_UDLR ARG:
+            is a string that contains letters U, D, L and R (up down left right)
             and as much blank caracters as you want. Ex:
-                X  X
-                 XX
+                U  D
+                 LR
         """
-        self._layout = ""
+        self._layout = (custom_UDLR.replace("U", f"[{self.up_key}]").replace("D", f"[{self.down_key}]")
+        .replace("L", f"[{self.left_key}]").replace("R", f"[{self.right_key}]").replace(" ", "   "))
 
     def _build_language(self, language: str):
         """
@@ -559,6 +560,7 @@ def format_cross_os(unknown) -> str:
     else:
         raise GameError("the getkey librairy has an unknown output format on your OS")
 
+
 def show_help(language: str) -> None:
     match language:
         case "English":
@@ -570,6 +572,7 @@ def show_help(language: str) -> None:
             print(dictionnary.ALLS["help_msg"][2])
         case _:
             raise GameError(f"internal error while print the help page in {language}")
+
 
 def build_parser() -> tuple:
     """
@@ -601,6 +604,7 @@ def build_parser() -> tuple:
     )
     return parser
 
+
 def parse_language(args: ap.ArgumentParser):
     """
     get the selected language from the arguments
@@ -611,6 +615,7 @@ def parse_language(args: ap.ArgumentParser):
     elif args.chinese:
         lang = "Chinese"
     return lang
+
 
 def parse_keyboard(args: ap.ArgumentParser):
     """
@@ -624,6 +629,7 @@ def parse_keyboard(args: ap.ArgumentParser):
         keys = "k", "j", "h", "l"
         layout = "linear"
     return keys, layout
+
 
 def run_game(settings: GameSettings) -> None:
     """
@@ -667,11 +673,13 @@ def run_game(settings: GameSettings) -> None:
                 clear_terminal()
                 continue
         g.spawn_random(2, settings.difficulty)
-        lose_flag = g.is_losing()
+        lose_flag = g.is_lost()
+        clear_terminal()
     if lose_flag:
         print(f"{dictionnary.ALLS["you_lost"][settings.language_index]} ({dictionnary.ALLS["final_score"][settings.language_index]}: {g.score})")
     else:
         print(f"{dictionnary.ALLS["final_score"][settings.language_index]}: {g.score}")
+
 
 # def main():
 #     """
@@ -696,6 +704,7 @@ def run_game(settings: GameSettings) -> None:
 #         settings = GameSettings(*keys, theme=theme, language=language, keys_layout=layout)
 #         run_game(settings)
 
+
 def main() -> None:
     """
     run the program
@@ -717,5 +726,3 @@ if __name__ == "__main__":
 #{TODO}
 # 2. add settings management and remember preferences in a settings file
 # 3. block the turn if no movement are mades
-# 4. do Game.is_lose
-# 5. do GameSettings custom key layout
