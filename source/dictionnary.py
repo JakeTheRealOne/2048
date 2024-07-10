@@ -51,6 +51,26 @@ ALLS = {
         "\n"
         "crédits:\n"
         "  l'auteur du jeu est Gabriele Cirulli\n"
+        ),
+        (
+        "论点: main.py [--help] [--azerty | --qwerty | --vim] [--english | --french | --chinese] [--theme] [--clear]\n"
+        "\n"
+        "选项:\n"
+        "    -h, --help          显示此帮助页面\n"
+        "  按钮:\n"
+        "    --azerty            用 Z Q S D 键作为方向键开始游戏\n"
+        "    --qwerty            用 W A S D 键作为方向键开始游戏\n"
+        "    --vim               使用 VIM 方向键开始游戏\n"
+        "  语言:\n"
+        "    --english, -en      将语言设置为英语\n"
+        "    --french, -fr       将语言设置为法语\n"
+        "    --chinese, -zh      将语言设置为普通话\n"
+        "  更多:\n"
+        "    --theme 'my_theme'  使用自定义主题（所有主题均可在主题文件夹中找到）开始游戏\n"
+        "    --clear             删除所有保存的数据（最佳成绩等）。\n"
+        "\n"
+        "学分:\n"
+        "  游戏的作者是加布里埃尔-西鲁利（Gabriele Cirulli\n"
         )
     ],
     "current_score":

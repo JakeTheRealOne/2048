@@ -1,4 +1,4 @@
-cd $HOME/Devloper/2048
+cd $HOME/Devloper/Games/2048
 mkdir -p memory
 echo "0" > memory/best_score
 git add .
