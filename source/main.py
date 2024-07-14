@@ -54,6 +54,32 @@ def show_help(language: str) -> None:
             raise game.GameError(f"internal error while print the help page in {language}")
 
 
+def get_best_score() -> int:
+    """
+    return the best score stored in memory/best_score
+    """
+    init_memory()
+    with open("memory/best_score", mode="r") as f:
+        best_score = int(f.read())
+    return best_score    
+
+
+def update_best_score(current_score: int) -> None:
+    """
+    update the best score stored in memory/best_score if the current score
+    is better
+    ARG:
+        current_score: the score reached after a game
+    """
+    # init_memory must be called before just to be sure that the file exist
+    with open("memory/best_score", mode="r") as f:
+        best_score = int(f.read())
+    if best_score < current_score:
+        print("We have a new best score!")
+        with open("memory/best_score", mode="w") as f:
+            f.write(str(current_score))  
+
+
 def run_game(settings: game.GameSettings) -> None:
     """
     run a game of 2048
@@ -100,9 +126,9 @@ def run_game(settings: game.GameSettings) -> None:
         clear_terminal()
     if lose_flag:
         print(f"{dictionnary.ALLS["you_lost"][settings.language_index]} ({dictionnary.ALLS["final_score"][settings.language_index]}: {g.score})")
-        # g.display()
     else:
         print(f"{dictionnary.ALLS["final_score"][settings.language_index]}: {g.score}")
+    update_best_score(g.score)
 
 
 def init_memory() -> None:
@@ -146,6 +172,7 @@ def build_parser() -> ap.ArgumentParser:
     language.add_argument(
         "--chinese", "-zh", help="run the game in Mandarin Chinese", action="store_true"
     )
+    parser.add_argument("--best-score", help="get the best score (local)", action="store_true")
     parser.add_argument("--clear", help="clear all user data", action="store_true")
     return parser
 
@@ -212,7 +239,9 @@ def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
     lang = parse_language(args)
-    if args.clear:
+    if args.best_score:
+        print(get_best_score())
+    elif args.clear:
         clear_memory(lang)
     elif args.help:
         show_help(lang)
