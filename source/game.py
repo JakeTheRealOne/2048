@@ -8,6 +8,7 @@ Date: June 2024
 from read_theme import Theme
 import random
 
+
 INDEX_TO_POWER = [
     ".",
     2,
@@ -155,15 +156,14 @@ class Game:
                 3 -> right
         """
         assert isinstance(orientation, int) and 0 <= orientation < 4
-        (self.tmp_up, self.tmp_down, self.tmp_left, self.tmp_right)[orientation]()
+        return (self._up, self._down, self._left, self._right)[orientation]()
 
-    # ONE DAY, I WILL MERGE tmp_down, tmp_up, tmp_left and tmp_right together but now, i keep them ugly like that
-    # (and modify the return value to specify if there was a change in the grid during the execution)
-
-    def tmp_down(self) -> bool:
-        """ TEMPORARY
-        change the gravity to the down gravity
+    def _down(self) -> bool:
         """
+        change the gravity to the down gravity
+        return if there was any change
+        """
+        changed = False
         for column in range(self._width):
             for case in range(self._height - 2, -1, -1):
                 y_pos = case
@@ -176,6 +176,7 @@ class Game:
                     y_pos += 1
                     pos += self._width
                 if case != y_pos:
+                    changed = True
                     # update position in the grid
                     self._grid[case][column], self._grid[y_pos][column] = self._grid[y_pos][column], self._grid[case][column]
                     # update free_spots
@@ -183,17 +184,21 @@ class Game:
                     self._free_spots.add(case * self._width + column)
                 # merge with the bottom tile if the values are identical
                 if y_pos < self._height - 1 and self._grid[y_pos][column] == self._grid[y_pos + 1][column]:
+                    changed = True
                     self._grid[y_pos][column] = 0
                     self._grid[y_pos + 1][column] += 1
                     add_to_score = self._grid[y_pos + 1][column]
                     self._score += INDEX_TO_POWER[add_to_score]
                     self._max_tile = max(self._max_tile, add_to_score)
                     self._free_spots.add(pos)
+        return changed
 
-    def tmp_up(self) -> bool:
-        """ TEMPORARY
-        change the gravity to the up gravity
+    def _up(self) -> bool:
         """
+        change the gravity to the up gravity
+        return if there was any change
+        """
+        changed = False
         for column in range(self._width):
             for case in range(1, self._height):
                 y_pos = case
@@ -206,6 +211,7 @@ class Game:
                     y_pos -= 1
                     pos -= self._width
                 if case != y_pos:
+                    changed = True
                     # update position in the grid
                     self._grid[case][column], self._grid[y_pos][column] = self._grid[y_pos][column], self._grid[case][column]
                     # update free_spots
@@ -213,17 +219,21 @@ class Game:
                     self._free_spots.add(case * self._width + column)
                 # merge with the bottom tile if the values are identical
                 if y_pos > 0 and self._grid[y_pos][column] == self._grid[y_pos - 1][column]:
+                    changed = True
                     self._grid[y_pos][column] = 0
                     self._grid[y_pos - 1][column] += 1
                     add_to_score = self._grid[y_pos - 1][column]
                     self._score += INDEX_TO_POWER[add_to_score]
                     self._max_tile = max(self._max_tile, add_to_score)
                     self._free_spots.add(pos)
+        return changed
 
-    def tmp_left(self) -> bool:
-        """ TEMPORARY
-        change the gravity to the left gravity
+    def _left(self) -> bool:
         """
+        change the gravity to the left gravity
+        return if there was any change
+        """
+        changed = False
         for line in range(self._height):
             y_pos = line * self._width
             for case in range(1, self._width):
@@ -237,6 +247,7 @@ class Game:
                     x_pos -= 1
                     pos -= 1
                 if case != x_pos:
+                    changed = True
                     # update position in the grid
                     self._grid[line][case], self._grid[line][x_pos] = self._grid[line][x_pos], self._grid[line][case]
                     # update free_spots
@@ -244,17 +255,21 @@ class Game:
                     self._free_spots.add(y_pos + case)
                 # merge with the bottom tile if the values are identical
                 if x_pos > 0 and self._grid[line][x_pos] == self._grid[line][x_pos - 1]:
+                    changed = True
                     self._grid[line][x_pos] = 0
                     self._grid[line][x_pos - 1] += 1
                     add_to_score = self._grid[line][x_pos - 1]
                     self._score += INDEX_TO_POWER[add_to_score]
                     self._max_tile = max(self._max_tile, add_to_score)
                     self._free_spots.add(y_pos + x_pos)
+        return changed
 
-    def tmp_right(self) -> bool:
-        """ TEMPORARY
-        change the gravity to the right gravity
+    def _right(self) -> bool:
         """
+        change the gravity to the right gravity
+        return if there was any change
+        """
+        changed = False
         for line in range(self._height):
             y_pos = line * self._width
             for case in range(self._width - 2, -1, -1):
@@ -268,6 +283,7 @@ class Game:
                     x_pos += 1
                     pos += 1
                 if case != x_pos:
+                    changed = True
                     # update position in the grid
                     self._grid[line][case], self._grid[line][x_pos] = self._grid[line][x_pos], self._grid[line][case]
                     # update free_spots
@@ -275,12 +291,14 @@ class Game:
                     self._free_spots.add(y_pos + case)
                 # merge with the bottom tile if the values are identical
                 if x_pos < self._width - 1 and self._grid[line][x_pos] == self._grid[line][x_pos + 1]:
+                    changed = True
                     self._grid[line][x_pos] = 0
                     self._grid[line][x_pos + 1] += 1
                     add_to_score = self._grid[line][x_pos + 1]
                     self._score += INDEX_TO_POWER[add_to_score]
                     self._max_tile = max(self._max_tile, add_to_score)
                     self._free_spots.add(y_pos + x_pos)
+        return changed
 
     # getters:
     @property

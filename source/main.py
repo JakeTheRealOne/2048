@@ -12,6 +12,7 @@ import argparse as ap
 import read_theme
 import dictionnary
 import game
+import loading_screen
 
 
 def clear_terminal() -> None:
@@ -110,18 +111,19 @@ def run_game(settings: game.GameSettings) -> None:
         direction = format_cross_os(getkey())
         match direction.lower():
             case settings.up_key:
-                g.change_gravity(0)
+                changed = g.change_gravity(0)
             case settings.down_key:
-                g.change_gravity(1)
+                changed = g.change_gravity(1)
             case settings.left_key:
-                g.change_gravity(2)
+                changed = g.change_gravity(2)
             case settings.right_key:
-                g.change_gravity(3)
+                changed = g.change_gravity(3)
             case _:
                 err_flag = True
                 clear_terminal()
                 continue
-        g.spawn_random(2, settings.difficulty)
+        if changed:
+            g.spawn_random(2, settings.difficulty)
         lose_flag = g.is_lost()
         clear_terminal()
     if lose_flag:
@@ -246,6 +248,7 @@ def main() -> None:
     elif args.help:
         show_help(lang)
     else:
+        loading_screen.show_title(True)
         keys, layout = parse_keyboard(args)
         theme = read_theme.Theme("themes/base.dmqu")
         settings = game.GameSettings(*keys, theme=theme, language=lang, keys_layout=layout)
