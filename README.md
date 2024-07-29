@@ -26,3 +26,7 @@
 4. Winning: The game is won when a tile with the value 2048 appears on the board.
 
 5. Losing: The game ends when no more moves are possible (no empty spaces and no adjacent tiles with the same value).
+
+## Credits
+This game was created by Gabriele Cirulli.
+Check his work here: https://github.com/gabrielecirulli/2048/tree/master
