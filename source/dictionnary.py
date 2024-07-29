@@ -35,6 +35,9 @@ ALLS = {
         "\n"
         "credits:\n"
         "  the author of the game is Gabriele Cirulli\n"
+        "\n"
+        "license:\n"
+        "  this program follows the GPL-3.0 license\n"
         ),
         (
         "utilisation: main.py [--help] [--azerty | --qwerty | --vim] [--english | --french | --chinese] [--theme] [--clear] [--best-score]\n"
@@ -57,6 +60,9 @@ ALLS = {
         "\n"
         "crédits:\n"
         "  l'auteur du jeu est Gabriele Cirulli\n"
+        "\n"
+        "license:\n"
+        "  Ce programme est sous la license GPL-3.0\n"
         ),
         (
         "论点: main.py [--help] [--azerty | --qwerty | --vim] [--english | --french | --chinese] [--theme] [--clear] [--best-score]\n"
@@ -79,6 +85,9 @@ ALLS = {
         "\n"
         "学分:\n"
         "  游戏的作者是加布里埃尔-西鲁利（Gabriele Cirulli\n"
+        "\n"
+        "许可:\n"
+        "  本程序遵循 GPL-3.0 许可\n"
         )
     ],
     "current_score":

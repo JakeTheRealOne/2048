@@ -1,8 +1,14 @@
+# 2048 - terminal
+
+![gameplay](https://github.com/JakeTheRealOne/2048/screenshots/gameplay.png)
+
 ## How to run the game:
 (default settings: language: English, keyboard: AZERTY, difficulty: normal)
 
     python3 source/main.py
 
+## Need help ?
+    python3 source/main.py --help
 
 ## Rules
 (more details [here](https://en.wikipedia.org/wiki/2048_(video_game)))
