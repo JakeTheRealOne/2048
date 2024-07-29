@@ -1,6 +1,6 @@
 # 2048 - terminal
 
-![gameplay](https://github.com/JakeTheRealOne/2048/screenshots/gameplay.png)
+![gameplay](https://github.com/JakeTheRealOne/2048/blob/master/screenshots/gameplay.png)
 
 ## How to run the game:
 (default settings: language: English, keyboard: AZERTY, difficulty: normal)
