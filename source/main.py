@@ -52,7 +52,7 @@ def show_help(language: str) -> None:
         case "Chinese":
             print(dictionnary.ALLS["help_msg"][2])
         case _:
-            raise game.GameError(f"internal error while print the help page in {language}")
+            raise game.GameError(f"internal error while printing the help page in {language}")
 
 
 def get_best_score() -> int:
@@ -176,12 +176,16 @@ def build_parser() -> ap.ArgumentParser:
     )
     parser.add_argument("--best-score", help="get the best score (local)", action="store_true")
     parser.add_argument("--clear", help="clear all user data", action="store_true")
+    parser.add_argument("--theme", help="change the theme")
+    parser.add_argument("--difficulty", help="set the game difficulty")
     return parser
 
 
 def parse_language(args: ap.ArgumentParser) -> str:
     """
     get the selected language from the arguments
+    ARG:
+      - args: the arguments given by the user in the command
     """
     lang = "English"
     if args.french:
@@ -192,18 +196,48 @@ def parse_language(args: ap.ArgumentParser) -> str:
 
 
 def parse_keyboard(args: ap.ArgumentParser) -> tuple:
-    """
-    get the selected keyboard setting from the arguments
-    """
-    keys = "z", "s", "q", "d"
-    layout = "cross"
-    if args.qwerty:
-        keys = "w", "s", "a", "d"
-    elif args.vim:
-        keys = "k", "j", "h", "l"
-        layout = "linear"
-    return keys, layout
+  """
+  get the selected keyboard setting from the arguments
+  ARG:
+    - args: the arguments given by the user in the command
+  """
+  keys = "z", "s", "q", "d"
+  layout = "cross"
+  if args.qwerty:
+      keys = "w", "s", "a", "d"
+  elif args.vim:
+      keys = "k", "j", "h", "l"
+      layout = "linear"
+  return keys, layout
 
+
+def parse_theme(args: ap.ArgumentParser) -> Theme:
+  """
+  get the selected theme from the arguments
+  ARG:
+    - args: the arguments given by the user in the command
+  """
+  if not args.theme:
+    theme = read_theme.Theme("themes/base.dmqu")
+  elif os.path.isfile("themes/" + args.theme + ".dmqu"):
+    theme = read_theme.Theme("themes/" + args.theme + ".dmqu")
+  else:
+    raise game.GameError("the theme given is invalid (it as to be the name of a theme file in the 'themes' subdir)")
+  return theme
+
+
+def parse_difficulty(args: ap.ArgumentParser) -> str:
+  """
+  get the selected difficulty from the arguments
+  ARG:
+    - args: the arguments given by the user in the command
+  """
+  if args.difficulty is None:
+    return "normal" # by default
+  elif args.difficulty in game.GameSettings.AVAILABLE_DIFFICULTIES:
+    return args.difficulty
+  else:
+    raise game.GameError(f"unknown difficulty - {args.difficulty}")
 
 def clear_memory(language: str):
     """
@@ -248,10 +282,11 @@ def main() -> None:
     elif args.help:
         show_help(lang)
     else:
-        loading_screen.show_title(True)
+        loading_screen.show_title(debug_mode=False)
         keys, layout = parse_keyboard(args)
-        theme = read_theme.Theme("themes/base.dmqu")
-        settings = game.GameSettings(*keys, theme=theme, language=lang, keys_layout=layout)
+        difficulty = parse_difficulty(args)
+        theme = parse_theme(args)       
+        settings = game.GameSettings(*keys, theme=theme, language=lang, keys_layout=layout, difficulty=difficulty)
         run_game(settings)
 
 

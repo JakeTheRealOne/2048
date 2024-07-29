@@ -1,19 +1,21 @@
 """
 Author: Bilal Vandenberge
 Date: July 2024
--> remember the values for different languages
+-> remember the messages for different languages
 """
 
 # INDEXES:
 # 0 English
 # 1 French
 # 2 Mandarin Chinese
-# 3 Spanish
+# 3 Spanish (removed from production)
+# 4 Russian (removed from production)
 
 ALLS = {
     "help_msg":
     [
-        ("usage: main.py [--help] [--azerty | --qwerty | --vim] [--english | --french | --chinese] [--theme] [--clear]\n"
+        (
+        "usage: main.py [--help] [--azerty | --qwerty | --vim] [--english | --french | --chinese] [--theme] [--clear] [--best-score]\n"
         "\n"
         "options:\n"
         "    -h, --help          show the help page\n"
@@ -28,12 +30,13 @@ ALLS = {
         "  extras:\n"
         "    --theme 'my_theme'  start a game with custom theme (all available in the themes directory)\n"
         "    --clear             clear all datas about the user (best score etc.)\n"
+        "    --best-score        print the best score of the local player\n"
         "\n"
         "credits:\n"
         "  the author of the game is Gabriele Cirulli\n"
         ),
         (
-        "utilisation: main.py [--help] [--azerty | --qwerty | --vim] [--english | --french | --chinese] [--theme] [--clear]\n"
+        "utilisation: main.py [--help] [--azerty | --qwerty | --vim] [--english | --french | --chinese] [--theme] [--clear] [--best-score]\n"
         "\n"
         "options:\n"
         "    -h, --help          affiche cette page d'aide\n"
@@ -48,12 +51,13 @@ ALLS = {
         "  extras:\n"
         "    --theme 'mon_theme' débute une partie avec un thème personnalisé (tous sont disponibles dans le dossier themes)\n"
         "    --clear             supprime toutes les données enregistrées (meilleur score etc.)\n"
+        "    --best-score        affiche le meilleur score du joueur locale\n"
         "\n"
         "crédits:\n"
         "  l'auteur du jeu est Gabriele Cirulli\n"
         ),
         (
-        "论点: main.py [--help] [--azerty | --qwerty | --vim] [--english | --french | --chinese] [--theme] [--clear]\n"
+        "论点: main.py [--help] [--azerty | --qwerty | --vim] [--english | --french | --chinese] [--theme] [--clear] [--best-score]\n"
         "\n"
         "选项:\n"
         "    -h, --help          显示此帮助页面\n"
@@ -68,6 +72,7 @@ ALLS = {
         "  更多:\n"
         "    --theme 'my_theme'  使用自定义主题（所有主题均可在主题文件夹中找到）开始游戏\n"
         "    --clear             删除所有保存的数据（最佳成绩等）。\n"
+        "    --best-score        打印本地玩家的最好成绩。\n"
         "\n"
         "学分:\n"
         "  游戏的作者是加布里埃尔-西鲁利（Gabriele Cirulli\n"
