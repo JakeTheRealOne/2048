@@ -1,5 +1,5 @@
 ## How to run the game:
-(default settings: English and Azerty)
+(default settings: language: English, keyboard: AZERTY, difficulty: normal)
 
     python3 source/main.py
 

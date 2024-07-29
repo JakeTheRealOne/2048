@@ -211,7 +211,7 @@ def parse_keyboard(args: ap.ArgumentParser) -> tuple:
   return keys, layout
 
 
-def parse_theme(args: ap.ArgumentParser) -> Theme:
+def parse_theme(args: ap.ArgumentParser) -> read_theme.Theme:
   """
   get the selected theme from the arguments
   ARG:
